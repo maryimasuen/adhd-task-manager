@@ -31,9 +31,9 @@ Braindump your messy, rambling thoughts exactly as they come. Pick how it should
 
 ### How drafting works (offline templates + optional AI)
 - **By default:** a built-in offline template engine composes drafts instantly — no key, no internet, fully private. Great for low-friction, zero-wait help.
-- **Optional AI assist:** click the **AI assist** toggle (or the ⚙️ gear in the header → *AI assistance*) and paste your own OpenAI API key. With AI on, drafts and rewrites are richer and more natural, especially for delicate or complex messages. Your key is stored **only in your browser** and is sent only to OpenAI when you generate a draft. No key → offline drafts are used automatically. If the AI call ever fails, it falls back to the offline draft so you're never stuck.
+- **Optional AI assist:** click the **AI assist** toggle (or the ⚙️ gear in the header → *AI assistance*) and paste your own OpenRouter API key. With AI on, drafts and rewrites are richer and more natural, especially for delicate or complex messages. Your key is stored **only in your browser** and is sent only to OpenRouter when you generate a draft. No key → offline drafts are used automatically. If the AI call ever fails, it falls back to the offline draft so you're never stuck.
 
-Get an OpenAI key at https://platform.openai.com/api-keys (create a key with normal access). The app calls `https://api.openai.com/v1/chat/completions` directly from your browser.
+You can pick a model in Settings (a few popular presets like `openai/gpt-4o-mini`, `anthropic/claude-3.5-sonnet`, `google/gemini-flash-1.5`, or **Custom** to paste any OpenRouter model ID). Get an OpenRouter key at https://openrouter.ai/keys, and browse available models at https://openrouter.ai/models (including free ones ending in `:free`). The app calls `https://openrouter.ai/api/v1/chat/completions` directly from your browser.
 
 ## The ADHD-friendly ideas behind it
 
@@ -59,5 +59,5 @@ Get an OpenAI key at https://platform.openai.com/api-keys (create a key with nor
 
 ## Data
 
-Everything is stored in `localStorage` under the keys `gentle.tasks.v1` and `gentle.settings.v1` (the latter includes your optional OpenAI key).
+Everything is stored in `localStorage` under the keys `gentle.tasks.v1` and `gentle.settings.v1` (the latter includes your optional OpenRouter key and chosen model).
 To wipe everything: open DevTools → Application → Local Storage → clear those keys, then refresh.

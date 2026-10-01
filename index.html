@@ -1030,7 +1030,7 @@ let state = {
 let settings = {
   focusMinutes: 25,
   breakMinutes: 5,
-  ai: { enabled: false, key: "", model: "gpt-4o-mini" },
+  ai: { enabled: false, key: "", model: "openai/gpt-4o-mini" },
 };
 
 /* ---------- Persistence ---------- */
@@ -1920,7 +1920,7 @@ function maybeSeed() {
 
   Drafting works two ways:
   - Offline template engine (default, instant, private, no key).
-  - Optional AI assist with your own OpenAI key (stored locally).
+  - Optional AI assist with your own OpenRouter key (stored locally).
 */
 
 let composeDraft = {
@@ -1933,6 +1933,8 @@ let composeDraft = {
 function openSettings() {
   const ai = settings.ai;
   const card = $("#popoverCard");
+  const PRESETS = ["openai/gpt-4o-mini","openai/gpt-4o","anthropic/claude-3.5-sonnet","anthropic/claude-3.5-haiku","google/gemini-flash-1.5","meta-llama/llama-3.1-8b-instruct"];
+  const isPreset = PRESETS.includes(ai.model);
   card.innerHTML = `
     <h3>Settings</h3>
     <div class="field">
@@ -1946,17 +1948,22 @@ function openSettings() {
     <hr style="border:none;border-top:1px solid var(--line);margin:14px 0;" />
     <div class="field">
       <label>AI assistance (optional)</label>
-      <p style="font-size:12px;color:var(--ink-soft);margin:0 0 8px;">Add your own OpenAI API key for richer, more natural drafts. Stored only in this browser. Without a key, the offline drafter is used.</p>
-      <input id="set_key" type="password" placeholder="sk-..." value="${escapeHtml(ai.key)}" autocomplete="off" />
+      <p style="font-size:12px;color:var(--ink-soft);margin:0 0 8px;">Add your own OpenRouter API key for richer, more natural drafts. Stored only in this browser. Without a key, the offline drafter is used. Get one at openrouter.ai/keys.</p>
+      <input id="set_key" type="password" placeholder="sk-or-v1-…" value="${escapeHtml(ai.key)}" autocomplete="off" />
     </div>
     <div class="field">
       <label>Model</label>
       <select id="set_model">
-        <option value="gpt-4o-mini" ${ai.model==="gpt-4o-mini"?"selected":""}>gpt-4o-mini (fast, cheap)</option>
-        <option value="gpt-4o" ${ai.model==="gpt-4o"?"selected":""}>gpt-4o (best quality)</option>
-        <option value="gpt-4.1-mini" ${ai.model==="gpt-4.1-mini"?"selected":""}>gpt-4.1-mini</option>
-        <option value="gpt-4.1" ${ai.model==="gpt-4.1"?"selected":""}>gpt-4.1</option>
+        <option value="openai/gpt-4o-mini" ${ai.model==="openai/gpt-4o-mini"?"selected":""}>openai/gpt-4o-mini (fast, cheap)</option>
+        <option value="openai/gpt-4o" ${ai.model==="openai/gpt-4o"?"selected":""}>openai/gpt-4o (best quality)</option>
+        <option value="anthropic/claude-3.5-sonnet" ${ai.model==="anthropic/claude-3.5-sonnet"?"selected":""}>anthropic/claude-3.5-sonnet</option>
+        <option value="anthropic/claude-3.5-haiku" ${ai.model==="anthropic/claude-3.5-haiku"?"selected":""}>anthropic/claude-3.5-haiku (fast)</option>
+        <option value="google/gemini-flash-1.5" ${ai.model==="google/gemini-flash-1.5"?"selected":""}>google/gemini-flash-1.5 (fast, cheap)</option>
+        <option value="meta-llama/llama-3.1-8b-instruct" ${ai.model==="meta-llama/llama-3.1-8b-instruct"?"selected":""}>meta-llama/llama-3.1-8b-instruct (cheap)</option>
+        <option value="__custom__" ${isPreset?"":"selected"}>Custom…</option>
       </select>
+      <input id="set_model_custom" placeholder="e.g. mistralai/mistral-large" value="${isPreset?"":escapeHtml(ai.model)}" style="display:${isPreset?"none":"block"};margin-top:8px;" autocomplete="off" />
+      <p style="font-size:11px;color:var(--ink-faint);margin:6px 0 0;">Browse all models at openrouter.ai/models — paste any ID above (including free ones ending in :free).</p>
     </div>
     <div class="actions">
       <button class="btn ghost" id="set_clearkey">Clear key</button>
@@ -1967,7 +1974,10 @@ function openSettings() {
     settings.breakMinutes = Math.max(1, parseInt($("#set_break").value, 10) || 5);
     const newKey = $("#set_key").value.trim();
     settings.ai.key = newKey;
-    settings.ai.model = $("#set_model").value;
+    const selModel = $("#set_model").value;
+    settings.ai.model = (selModel === "__custom__")
+      ? ($("#set_model_custom").value.trim() || "openai/gpt-4o-mini")
+      : selModel;
     if (newKey && !settings.ai.enabled) settings.ai.enabled = true;
     if (!newKey) settings.ai.enabled = false;
     saveSettings();
@@ -1976,6 +1986,16 @@ function openSettings() {
     toast("Settings saved ✨");
     renderAll();
   };
+  // show/hide the custom model input based on the dropdown choice
+  const modelSel = $("#set_model");
+  const modelCustom = $("#set_model_custom");
+  if (modelSel && modelCustom) {
+    modelSel.onchange = () => {
+      const custom = modelSel.value === "__custom__";
+      modelCustom.style.display = custom ? "block" : "none";
+      if (custom) modelCustom.focus();
+    };
+  }
   $("#set_clearkey").onclick = () => {
     settings.ai.key = "";
     settings.ai.enabled = false;
@@ -2158,15 +2178,20 @@ function clarifyAndFormat(text, style) {
   return { body, short, points };
 }
 
-/* ---------- Optional AI assist (OpenAI, user's own key) ---------- */
+/* ---------- Optional AI assist (OpenRouter, user's own key) ---------- */
 async function aiComplete(system, user, { temperature = 0.7, maxTokens = 600 } = {}) {
   const ai = settings.ai;
   if (!ai.enabled || !ai.key) throw new Error("AI not enabled");
-  const res = await fetch("https://api.openai.com/v1/chat/completions", {
+  const res = await fetch("https://openrouter.ai/api/v1/chat/completions", {
     method: "POST",
-    headers: { "Content-Type": "application/json", "Authorization": `Bearer ${ai.key}` },
+    headers: {
+      "Content-Type": "application/json",
+      "Authorization": `Bearer ${ai.key}`,
+      "HTTP-Referer": location.href,
+      "X-Title": "Gentle — ADHD-friendly task manager",
+    },
     body: JSON.stringify({
-      model: ai.model || "gpt-4o-mini",
+      model: ai.model || "openai/gpt-4o-mini",
       messages: [ { role: "system", content: system }, { role: "user", content: user } ],
       temperature,
       max_tokens: maxTokens,
