@@ -2003,8 +2003,13 @@ function truncate(s, n) {
   return (lastSpace > 20 ? cut.slice(0, lastSpace) : cut) + "…";
 }
 function titleish(s) {
-  const t = s.replace(/^(i want(ed)? to|i'm writing to|i am writing to|just|hi|hey|so|um|basically|please)\s+/i, "");
+  const re = /^(?:i\s+want(?:ed)?\s+to|i'm\s+writing\s+to|i\s+am\s+writing\s+to|just|hi|hey|so|um|basically|please|let\s+you\s+know\s+that|let\s+you\s+know|tell\s+you\s+that|tell\s+you|ask\s+you\s+to|ask\s+you\s+if|ask\s+you\s+whether|ask\s+you|follow\s+up\s+with\s+you\s+on|follow\s+up\s+with\s+you\s+about|follow\s+up\s+with\s+you|follow\s+up\s+about|follow\s+up\s+on|follow\s+up|reach\s+out\s+to\s+you\s+about|reach\s+out\s+to\s+you|reach\s+out\s+about|reach\s+out|ping\s+you\s+about|ping\s+you|email\s+you|message\s+you|text\s+you|remind\s+you\s+that|remind\s+you\s+about|remind\s+you\s+to|remind\s+you|thank\s+you\s+for|thank\s+you|apologize\s+to\s+you\s+for|apologize\s+to\s+you|apologize\s+for|apologize|say\s+hi\s+to\s+you|say\s+hi|update\s+you\s+on|update\s+you|notify\s+you\s+of|notify\s+you|send\s+you|check\s+with\s+you\s+on|check\s+with\s+you|confirm\s+with\s+you\s+that|confirm\s+with\s+you|invite\s+you\s+to|invite\s+you|cc\s+you|loop\s+you\s+in|loop\s+you)\s+/i;
+  let t = s, prev;
+  do { prev = t; t = t.replace(re, ""); } while (t !== prev && t.length > 0);
   return t || s;
+}
+function fixCase(s) {
+  return String(s || "").replace(/\bi\b/g, "I");
 }
 
 /* ---------- Offline message drafter ---------- */
@@ -2053,18 +2058,58 @@ function makeSubject(context, tone) {
   if (tone === "apologetic") return `Apologies for the delay — ${capitalize(truncate(titleish(c), 40))}`;
   return capitalize(truncate(titleish(c), 60));
 }
+// Rewrites the context so the recipient (named in `to`) is addressed as "you"
+// instead of being mentioned by name — fixes drafts that repeated the recipient.
+function contextForRecipient(context, toField) {
+  let c = cleanContext(context);
+  const fullRaw = cleanContext(toField).replace(/\s*\([^)]*\)\s*/g, " ").replace(/,.*/, "").trim();
+  const first = firstFromRecipient(toField);
+  const names = [];
+  if (fullRaw && /^[A-Z]/.test(fullRaw) && fullRaw.split(/\s+/).length <= 3) names.push(fullRaw);
+  if (first) names.push(first);
+  if (!names.length) return c;
+  names.sort((a, b) => b.length - a.length);
+  // Words that are also auxiliary verbs — don't blindly replace as a name
+  // (e.g. a recipient called "Will" shouldn't turn "I will be late" into "I you be late").
+  const AUX = new Set(["will","may","can","must","should","would","could","might","do","does","did","be","is","are","was","were","has","have","had"]);
+
+  for (const nm of names) {
+    const n = nm.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    // 1) Verb-framing: "[verb] [name]" -> "[verb] you" (case-insensitive). Safe for ALL
+    //    names because it only fires when a framing verb directly precedes the name, so
+    //    "I will be late" (recipient "Will") is never touched.
+    c = c.replace(new RegExp(`(\\b(?:tell|ask|thank|remind|ping|email|message|text|contact|send|update|notify|invite|cc|apologize\\s+to|reach\\s+out\\s+to|follow\\s+up\\s+with|check\\s+with|confirm\\s+with|say\\s+hi\\s+to))\\s+${n}\\b`, "gi"), "$1 you");
+    c = c.replace(new RegExp(`(\\blet)\\s+${n}\\s+know\\b`, "gi"), "$1 you know");
+    c = c.replace(new RegExp(`(\\bloop)\\s+${n}\\s+in\\b`, "gi"), "$1 you in");
+    // 2 & 3) For non-auxiliary-word names, also handle possessive + standalone references.
+    if (!AUX.has(nm.toLowerCase())) {
+      c = c.replace(new RegExp(`\\b${n}'s\\b`, "gi"), "your");
+      const cap = nm.charAt(0).toUpperCase() + nm.slice(1);
+      const cn = cap.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+      c = c.replace(new RegExp(`\\b${cn}\\b`, "g"), "you");
+    }
+  }
+  c = c.replace(/\s+/g, " ").replace(/\s+([.,;!?])/g, "$1").trim();
+
+  // If the rewrite now starts with "[verb] you …", lead in naturally.
+  const prependRe = /^(?:(?:tell|ask|thank|remind|ping|email|message|text|contact|update|notify|send|invite|cc)\s+you|let\s+you\s+know|apologize\s+to\s+you|reach\s+out\s+to\s+you|follow\s+up\s+with\s+you|check\s+with\s+you|confirm\s+with\s+you|loop\s+you\s+in|say\s+hi\s+to\s+you)\b/i;
+  if (prependRe.test(c)) c = "I wanted to " + c;
+  return capitalize(c);
+}
+
 function draftMessage(opts) {
   const { context, to, tone, channel, signoff } = opts;
   const g = greetingName(to, tone, channel);
   const multiline = (channel === "Email" || channel === "LinkedIn" ||
                      (channel === "Slack" && (tone === "formal" || tone === "professional")));
-  let body = frameOpen(tone, channel, context);
+  const adjusted = contextForRecipient(context, to);
+  let body = fixCase(frameOpen(tone, channel, adjusted));
   if (multiline) body = ensurePeriod(body);
   const so = signoffLine(tone, channel, signoff);
   const msg = multiline
     ? `${g}\n\n${body}${so ? `\n\n${so}` : ""}`
     : `${g} ${body}${so ? `\n${so}` : ""}`;
-  const subject = (channel === "Email") ? makeSubject(context, tone) : null;
+  const subject = (channel === "Email") ? fixCase(makeSubject(adjusted, tone)) : null;
   return { subject, body: msg };
 }
 
