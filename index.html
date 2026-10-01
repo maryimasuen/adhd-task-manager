@@ -719,15 +719,200 @@
     color: var(--ink-soft);
   }
 
+  /* ---------- Header settings button ---------- */
+  .hdr-btn {
+    width: 36px; height: 36px;
+    border-radius: 50%;
+    background: var(--bg-card);
+    border: 1px solid var(--line);
+    color: var(--ink-soft);
+    display: grid; place-items: center;
+    font-size: 16px;
+    box-shadow: var(--shadow);
+    transition: color .12s;
+    flex: none;
+  }
+  .hdr-btn:hover { color: var(--ink); }
+
+  /* ---------- Compose view ---------- */
+  .seg {
+    display: flex;
+    gap: 4px;
+    background: var(--bg-soft);
+    padding: 5px;
+    border-radius: 999px;
+    margin-bottom: 16px;
+  }
+  .seg button {
+    flex: 1;
+    padding: 9px 10px;
+    border-radius: 999px;
+    font-weight: 600;
+    font-size: 14px;
+    color: var(--ink-soft);
+    transition: all .15s;
+  }
+  .seg button.on {
+    background: var(--bg-card);
+    color: var(--ink);
+    box-shadow: var(--shadow);
+  }
+
+  .compose-card {
+    background: var(--bg-card);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    padding: 18px;
+    box-shadow: var(--shadow);
+    margin-bottom: 14px;
+  }
+  .compose-card h3 { margin: 0 0 4px; font-size: 17px; }
+  .compose-card .sub { font-size: 13px; color: var(--ink-soft); margin: 0 0 14px; }
+  .compose-card textarea {
+    width: 100%;
+    border: 1px solid var(--line);
+    border-radius: 9px;
+    padding: 10px 12px;
+    background: var(--bg);
+    outline: none;
+    resize: vertical;
+    min-height: 90px;
+    font-family: inherit;
+    font-size: 15px;
+    line-height: 1.5;
+    color: var(--ink);
+  }
+  .compose-card textarea:focus { border-color: var(--accent); }
+  .compose-card .chip-row { margin-top: 4px; }
+
+  .ai-bar {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-top: 16px;
+    flex-wrap: wrap;
+  }
+  .ai-toggle {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+    color: var(--ink-soft);
+    cursor: pointer;
+    user-select: none;
+  }
+  .ai-toggle .switch {
+    width: 38px; height: 22px;
+    border-radius: 999px;
+    background: var(--line);
+    position: relative;
+    transition: background .15s;
+    flex: none;
+  }
+  .ai-toggle .switch::after {
+    content: "";
+    position: absolute;
+    top: 2px; left: 2px;
+    width: 18px; height: 18px;
+    border-radius: 50%;
+    background: #fff;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+    transition: transform .15s;
+  }
+  .ai-toggle.on .switch { background: var(--accent); }
+  .ai-toggle.on .switch::after { transform: translateX(16px); }
+  .ai-toggle .ai-label { font-weight: 600; }
+  .ai-toggle.on .ai-label { color: var(--accent-ink); }
+  .ai-bar .gear { color: var(--ink-faint); }
+  .ai-bar .gear:hover { color: var(--ink); }
+
+  .btn-big {
+    margin-left: auto;
+    background: var(--accent);
+    color: #fff;
+    padding: 11px 22px;
+    border-radius: 999px;
+    font-weight: 700;
+    font-size: 15px;
+    box-shadow: var(--shadow);
+    transition: transform .08s, background .15s;
+  }
+  .btn-big:hover { background: var(--accent-ink); }
+  .btn-big:active { transform: scale(0.96); }
+  .btn-big:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+
+  .result {
+    background: var(--bg-card);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    padding: 16px 18px;
+    box-shadow: var(--shadow);
+    margin-top: 14px;
+  }
+  .result .rhead {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 10px;
+  }
+  .result .rlabel { font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; color: var(--accent-ink); }
+  .result .rmeta { font-size: 12px; color: var(--ink-faint); margin-left: auto; font-weight: 600; }
+  .result .rbody {
+    white-space: pre-wrap;
+    word-wrap: break-word;
+    font-size: 15px;
+    line-height: 1.6;
+    color: var(--ink);
+    background: var(--bg);
+    border: 1px solid var(--line);
+    border-radius: 9px;
+    padding: 14px 16px;
+  }
+  .result .rbody.subject { margin-bottom: 10px; font-weight: 600; }
+  .result .ractions { display: flex; gap: 8px; margin-top: 12px; flex-wrap: wrap; }
+  .result .ractions button {
+    padding: 8px 14px;
+    border-radius: 999px;
+    font-weight: 600;
+    font-size: 13px;
+    background: var(--bg-soft);
+    color: var(--ink);
+  }
+  .result .ractions button:hover { background: var(--accent-soft); color: var(--accent-ink); }
+  .result .ractions .copy { background: var(--accent); color: #fff; }
+  .result .ractions .copy:hover { background: var(--accent-ink); color: #fff; }
+
+  .compose-loading {
+    display: flex; align-items: center; gap: 10px;
+    color: var(--ink-soft); font-size: 14px;
+    padding: 12px 4px;
+  }
+  .spinner {
+    width: 16px; height: 16px;
+    border: 2px solid var(--line);
+    border-top-color: var(--accent);
+    border-radius: 50%;
+    animation: spin .8s linear infinite;
+    flex: none;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* generic selected chip (used by compose selectors) */
+  .chip.on { background: var(--accent-soft); border-color: var(--accent); color: var(--accent-ink); }
+
   @media (max-width: 560px) {
     .wrap { padding: 14px 12px 70px; }
     .brand .tag { display: none; }
     .top-right { width: 100%; justify-content: space-between; }
-    .tabs button { font-size: 13px; padding: 8px 6px; }
+    .tabs button { font-size: 12px; padding: 8px 4px; }
     .tabs button .count { display: none; }
     .focus-task h1 { font-size: 24px; }
     .timer-ring { width: 200px; height: 200px; }
     .timer-ring .time .mm { font-size: 38px; }
+    .seg button { font-size: 13px; }
+    .compose-card { padding: 14px; }
+    .field.row { flex-direction: column; gap: 14px; }
+    .ai-bar .btn-big { width: 100%; margin-left: 0; }
   }
 </style>
 </head>
@@ -750,6 +935,7 @@
       <div class="streak zero" id="streak" title="Days in a row you've finished at least one task">
         <span class="flame">🔥</span><span id="streakNum">0</span>
       </div>
+      <button class="hdr-btn" id="settingsBtn" title="Settings (timer & AI)">⚙️</button>
     </div>
   </header>
 
@@ -769,12 +955,13 @@
     <button data-view="today">☀️ Today</button>
     <button data-view="inbox">📥 Inbox</button>
     <button data-view="all">☰ All</button>
+    <button data-view="compose">✍️ Draft</button>
   </div>
 
   <div id="view"></div>
 
   <div class="shortcuts">
-    <kbd>/</kbd> capture &nbsp; <kbd>n</kbd> now &nbsp; <kbd>t</kbd> today &nbsp; <kbd>i</kbd> inbox &nbsp; <kbd>a</kbd> all &nbsp; <kbd>space</kbd> start/pause timer &nbsp; <kbd>esc</kbd> close
+    <kbd>/</kbd> capture &nbsp; <kbd>n</kbd> now &nbsp; <kbd>t</kbd> today &nbsp; <kbd>i</kbd> inbox &nbsp; <kbd>a</kbd> all &nbsp; <kbd>c</kbd> draft &nbsp; <kbd>space</kbd> start/pause timer &nbsp; <kbd>esc</kbd> close
   </div>
 </div>
 
@@ -838,10 +1025,12 @@ let state = {
   streak: { count: 0, lastDate: null },
   view: "now",
   focusTaskId: null,
+  composeMode: "message",
 };
 let settings = {
   focusMinutes: 25,
   breakMinutes: 5,
+  ai: { enabled: false, key: "", model: "gpt-4o-mini" },
 };
 
 /* ---------- Persistence ---------- */
@@ -982,7 +1171,7 @@ function renderTabs() {
   });
 }
 function labelFor(v) {
-  return { now:"▶ Now", today:"☀️ Today", inbox:"📥 Inbox", all:"☰ All" }[v];
+  return { now:"▶ Now", today:"☀️ Today", inbox:"📥 Inbox", all:"☰ All", compose:"✍️ Draft" }[v];
 }
 
 /* ---------- Gentle overdue nudge ---------- */
@@ -1016,10 +1205,22 @@ function renderGentleNudge() {
 function renderView() {
   const v = state.view;
   const root = $("#view");
+  // preserve focus & cursor across re-renders (e.g. compose textareas)
+  const ae = document.activeElement;
+  const focusId = ae && ae.id && root.contains(ae) ? ae.id : null;
+  const selStart = (focusId && ae.selectionStart != null) ? ae.selectionStart : null;
   if (v === "now") renderNow(root);
   else if (v === "today") renderToday(root);
   else if (v === "inbox") renderInbox(root);
+  else if (v === "compose") renderCompose(root);
   else renderAllView(root);
+  if (focusId) {
+    const el = document.getElementById(focusId);
+    if (el) {
+      el.focus();
+      try { if (selStart != null) { el.selectionStart = el.selectionEnd = selStart; } } catch (e) {}
+    }
+  }
 }
 
 function renderNow(root) {
@@ -1663,6 +1864,9 @@ function wire() {
   // popover backdrop
   $("#popover").onclick = (e) => { if (e.target.id === "popover") closePopover(); };
 
+  // settings
+  $("#settingsBtn").onclick = openSettings;
+
   // keyboard shortcuts
   document.addEventListener("keydown", (e) => {
     const typing = /^(INPUT|TEXTAREA|SELECT)$/.test(document.activeElement.tagName);
@@ -1677,6 +1881,7 @@ function wire() {
     else if (e.key === "t") { state.view="today"; save(); renderAll(); }
     else if (e.key === "i") { state.view="inbox"; save(); renderAll(); }
     else if (e.key === "a") { state.view="all"; save(); renderAll(); }
+    else if (e.key === "c") { state.view="compose"; save(); renderAll(); }
     else if (e.key === " ") {
       if ($("#focusOverlay").classList.contains("show")) {
         e.preventDefault();
@@ -1704,6 +1909,519 @@ function maybeSeed() {
     status: s.status, createdAt: Date.now(), scheduledFor: null, completedAt: null,
   }));
   save();
+}
+
+/* ---------- Compose: message drafting + idea clarifying ---------- */
+/*
+  Two ADHD-friendly helpers live in the "✍️ Draft" tab:
+  1) Draft a message  — give context + who + tone + where it'll be sent,
+                        get a ready-to-copy draft (you send it yourself).
+  2) Clarify an idea  — braindump messy thoughts, get a clear rewrite.
+
+  Drafting works two ways:
+  - Offline template engine (default, instant, private, no key).
+  - Optional AI assist with your own OpenAI key (stored locally).
+*/
+
+let composeDraft = {
+  message: { context: "", to: "", rel: "other", tone: "friendly", channel: "Email", signoff: "" },
+  clarify:  { text: "", style: "plain" },
+  lastResult: null, // { mode, subject, body, via }
+};
+
+/* ---------- Settings popover ---------- */
+function openSettings() {
+  const ai = settings.ai;
+  const card = $("#popoverCard");
+  card.innerHTML = `
+    <h3>Settings</h3>
+    <div class="field">
+      <label>Focus session length (min)</label>
+      <input id="set_focus" type="number" min="1" value="${settings.focusMinutes}" />
+    </div>
+    <div class="field">
+      <label>Break length (min)</label>
+      <input id="set_break" type="number" min="1" value="${settings.breakMinutes}" />
+    </div>
+    <hr style="border:none;border-top:1px solid var(--line);margin:14px 0;" />
+    <div class="field">
+      <label>AI assistance (optional)</label>
+      <p style="font-size:12px;color:var(--ink-soft);margin:0 0 8px;">Add your own OpenAI API key for richer, more natural drafts. Stored only in this browser. Without a key, the offline drafter is used.</p>
+      <input id="set_key" type="password" placeholder="sk-..." value="${escapeHtml(ai.key)}" autocomplete="off" />
+    </div>
+    <div class="field">
+      <label>Model</label>
+      <select id="set_model">
+        <option value="gpt-4o-mini" ${ai.model==="gpt-4o-mini"?"selected":""}>gpt-4o-mini (fast, cheap)</option>
+        <option value="gpt-4o" ${ai.model==="gpt-4o"?"selected":""}>gpt-4o (best quality)</option>
+        <option value="gpt-4.1-mini" ${ai.model==="gpt-4.1-mini"?"selected":""}>gpt-4.1-mini</option>
+        <option value="gpt-4.1" ${ai.model==="gpt-4.1"?"selected":""}>gpt-4.1</option>
+      </select>
+    </div>
+    <div class="actions">
+      <button class="btn ghost" id="set_clearkey">Clear key</button>
+      <button class="btn primary" id="set_save">Save</button>
+    </div>`;
+  $("#set_save").onclick = () => {
+    settings.focusMinutes = Math.max(1, parseInt($("#set_focus").value, 10) || 25);
+    settings.breakMinutes = Math.max(1, parseInt($("#set_break").value, 10) || 5);
+    const newKey = $("#set_key").value.trim();
+    settings.ai.key = newKey;
+    settings.ai.model = $("#set_model").value;
+    if (newKey && !settings.ai.enabled) settings.ai.enabled = true;
+    if (!newKey) settings.ai.enabled = false;
+    saveSettings();
+    if (!timer.running) resetTimer();
+    closePopover();
+    toast("Settings saved ✨");
+    renderAll();
+  };
+  $("#set_clearkey").onclick = () => {
+    settings.ai.key = "";
+    settings.ai.enabled = false;
+    saveSettings();
+    closePopover();
+    toast("AI key cleared");
+    renderAll();
+  };
+  $("#popover").classList.add("show");
+}
+
+/* ---------- Text helpers ---------- */
+function capitalize(s) { return s ? s.charAt(0).toUpperCase() + s.slice(1) : s; }
+function cleanContext(s) { return String(s || "").trim().replace(/\s+/g, " "); }
+function ensurePeriod(s) {
+  s = String(s || "").trim();
+  if (s && !/[.!?]"?$/.test(s)) s += ".";
+  return s;
+}
+function truncate(s, n) {
+  s = String(s || "");
+  if (s.length <= n) return s;
+  const cut = s.slice(0, n);
+  const lastSpace = cut.lastIndexOf(" ");
+  return (lastSpace > 20 ? cut.slice(0, lastSpace) : cut) + "…";
+}
+function titleish(s) {
+  const t = s.replace(/^(i want(ed)? to|i'm writing to|i am writing to|just|hi|hey|so|um|basically|please)\s+/i, "");
+  return t || s;
+}
+
+/* ---------- Offline message drafter ---------- */
+function firstFromRecipient(recip) {
+  const r = cleanContext(recip);
+  if (!r) return null;
+  const core = r.replace(/\s*\([^)]*\)\s*/g, " ").replace(/,.*/, "").trim();
+  const m = core.match(/^([A-Z][a-zA-Z.'’-]+)/);
+  return m ? m[1] : null;
+}
+function greetingName(recip, tone, channel) {
+  const name = firstFromRecipient(recip);
+  const casual = (tone === "casual" || tone === "friendly" || tone === "warm");
+  const shortCh = ["Text", "WhatsApp", "Instagram", "Discord"].includes(channel);
+  if (shortCh) return name ? `Hey ${name}!` : `Hey!`;
+  if (tone === "formal") return name ? `Dear ${name},` : `Hello,`;
+  if (casual) return name ? `Hi ${name}!` : `Hi!`;
+  return name ? `Hi ${name},` : `Hello,`;
+}
+function signoffLine(tone, channel, signoffName) {
+  const name = cleanContext(signoffName);
+  const casual = (tone === "casual" || tone === "friendly" || tone === "warm");
+  const shortCh = ["Text", "WhatsApp", "Instagram", "Discord"].includes(channel);
+  if (shortCh) return name ? `— ${name}` : "";
+  if (tone === "formal") return `Kind regards,${name ? "\n" + name : ""}`;
+  if (casual) return `Cheers,${name ? "\n" + name : ""}`;
+  return `Best,${name ? "\n" + name : ""}`;
+}
+function frameOpen(tone, channel, context) {
+  const c = cleanContext(context);
+  const shortCh = ["Text", "WhatsApp", "Instagram", "Discord"].includes(channel);
+  switch (tone) {
+    case "apologetic":
+      return (shortCh ? `Sorry for the delay! ` : `I'm really sorry for the delay in getting back to you. `) + capitalize(c);
+    case "follow-up":
+      return `Just following up — ` + capitalize(c);
+    case "warm":
+      return (shortCh ? `` : `Hope you're doing well! `) + capitalize(c);
+    default:
+      return capitalize(c);
+  }
+}
+function makeSubject(context, tone) {
+  const c = cleanContext(context);
+  if (tone === "follow-up") return `Following up: ${capitalize(truncate(titleish(c), 50))}`;
+  if (tone === "apologetic") return `Apologies for the delay — ${capitalize(truncate(titleish(c), 40))}`;
+  return capitalize(truncate(titleish(c), 60));
+}
+function draftMessage(opts) {
+  const { context, to, tone, channel, signoff } = opts;
+  const g = greetingName(to, tone, channel);
+  const multiline = (channel === "Email" || channel === "LinkedIn" ||
+                     (channel === "Slack" && (tone === "formal" || tone === "professional")));
+  let body = frameOpen(tone, channel, context);
+  if (multiline) body = ensurePeriod(body);
+  const so = signoffLine(tone, channel, signoff);
+  const msg = multiline
+    ? `${g}\n\n${body}${so ? `\n\n${so}` : ""}`
+    : `${g} ${body}${so ? `\n${so}` : ""}`;
+  const subject = (channel === "Email") ? makeSubject(context, tone) : null;
+  return { subject, body: msg };
+}
+
+/* ---------- Offline idea clarifier ---------- */
+const FILLER = [
+  /\b(um+|uh+|hmm+|er+|ah+)\b/gi,
+  /\b(you know|you know what|i mean|sort of|kind of|kinda|sorta|basically|literally|honestly|obviously|essentially|i guess|i suppose|anyway|anyways|so yeah|idk|i don't know|i dunno)\b/gi,
+  /\bjust\b/gi,
+];
+function clarify(text) {
+  let s = (text || "").trim();
+  if (!s) return { short: "", points: [] };
+  s = s.replace(/\s+/g, " ");
+  for (const re of FILLER) s = s.replace(re, "");
+  s = s.replace(/\s+/g, " ").replace(/\s+([,.;])/g, "$1").trim();
+  if (!s) return { short: "", points: [] };
+
+  const raw = s.split(/(?:[.!?;]|\n|,|\band\b|\bbut\b|\balso\b|\bplus\b|\bthen\b|\bbecause\b|\bso\b)/i)
+    .map(p => p.trim())
+    .filter(Boolean);
+
+  const points = [];
+  const seen = new Set();
+  for (const p of raw) {
+    const key = p.toLowerCase().replace(/[^a-z0-9 ]/g, "").trim();
+    if (!key || seen.has(key)) continue;
+    seen.add(key);
+    points.push(capitalize(p) + (/[.!?]$/.test(p) ? "" : "."));
+  }
+
+  let short;
+  if (points.length === 0) {
+    short = capitalize(s) + (/[.!?]$/.test(s) ? "" : ".");
+  } else {
+    short = points[0];
+  }
+  return { short, points };
+}
+function clarifyAndFormat(text, style) {
+  const { short, points } = clarify(text);
+  let body;
+  if (style === "sentence") body = short;
+  else if (style === "paragraph") body = points.length ? points.join(" ") : short;
+  else if (style === "bullets") body = points.length ? points.map(p => "• " + p).join("\n") : short;
+  else /* plain */ body = points.length > 1 ? points.map(p => "• " + p).join("\n") : short;
+  return { body, short, points };
+}
+
+/* ---------- Optional AI assist (OpenAI, user's own key) ---------- */
+async function aiComplete(system, user, { temperature = 0.7, maxTokens = 600 } = {}) {
+  const ai = settings.ai;
+  if (!ai.enabled || !ai.key) throw new Error("AI not enabled");
+  const res = await fetch("https://api.openai.com/v1/chat/completions", {
+    method: "POST",
+    headers: { "Content-Type": "application/json", "Authorization": `Bearer ${ai.key}` },
+    body: JSON.stringify({
+      model: ai.model || "gpt-4o-mini",
+      messages: [ { role: "system", content: system }, { role: "user", content: user } ],
+      temperature,
+      max_tokens: maxTokens,
+    }),
+  });
+  if (!res.ok) {
+    let detail = "";
+    try { detail = (await res.json()).error?.message || ""; } catch (e) {}
+    const err = new Error(`AI error ${res.status}: ${detail || res.statusText}`);
+    err.status = res.status;
+    throw err;
+  }
+  const data = await res.json();
+  return (data.choices?.[0]?.message?.content || "").trim();
+}
+async function aiDraftMessage(opts) {
+  const { context, to, rel, tone, channel, signoff } = opts;
+  const system = `You are a helpful assistant drafting a message on the user's behalf. The user has ADHD and finds replying to messages hard, so make it easy for them. Write ONLY the final message, ready to send — no preamble, no explanation, no notes. Match the requested tone and the conventions of the channel. Be clear, warm, and concise. If the channel is email, begin with a subject line on its own first line prefixed exactly with "Subject: ".`;
+  const user = `Draft a message with these details:
+- Who it's to: ${to || "(unspecified)"}
+- Relationship: ${rel || "(unspecified)"}
+- Tone: ${tone}
+- Channel (where it'll be sent, shapes format): ${channel}
+- Sign off as (name): ${signoff || "(use a fitting default)"}
+
+Context / what the user wants to say:
+"""
+${context}
+"""
+
+Write only the message now.`;
+  const content = await aiComplete(system, user, { temperature: 0.7, maxTokens: 700 });
+  let subject = null, body = content;
+  const m = content.match(/^Subject:\s*(.+?)\n([\s\S]*)$/);
+  if (m) { subject = m[1].trim(); body = m[2].trim(); }
+  return { subject, body };
+}
+async function aiClarify(text, style) {
+  const system = `You help someone with ADHD turn messy, rambling braindumps into clear, simple language they can actually communicate to others. Rewrite the user's text so it's easy to understand while keeping their meaning. Output ONLY the rewritten text — no commentary, no preamble.`;
+  const styleInstr = {
+    sentence: "Write it as one clear, simple sentence.",
+    paragraph: "Write it as a short, clear paragraph (2-4 sentences).",
+    bullets: 'Write it as a short bulleted list using "• " prefixes, 3-6 bullets max.',
+    plain: "Write it in plain, simple language — a sentence or two, or bullets if there are several distinct points.",
+  }[style] || "Write it in plain, simple language.";
+  const user = `Rewrite this braindump clearly.\nFormat: ${styleInstr}\n\nBraindump:\n"""\n${text}\n"""`;
+  const content = await aiComplete(system, user, { temperature: 0.5, maxTokens: 500 });
+  return { body: content };
+}
+
+/* ---------- Copy helpers ---------- */
+function copyText(text) {
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(text)
+      .then(() => toast("Copied 📋"))
+      .catch(() => fallbackCopy(text));
+  } else {
+    fallbackCopy(text);
+  }
+}
+function fallbackCopy(text) {
+  const ta = document.createElement("textarea");
+  ta.value = text;
+  ta.style.position = "fixed"; ta.style.opacity = "0";
+  document.body.appendChild(ta);
+  ta.select();
+  try { document.execCommand("copy"); toast("Copied 📋"); }
+  catch (e) { toast("Couldn't copy — select & copy manually"); }
+  document.body.removeChild(ta);
+}
+
+/* ---------- Compose view rendering ---------- */
+function renderCompose(root) {
+  const ai = settings.ai;
+  const mode = state.composeMode || "message";
+  const m = composeDraft.message, c = composeDraft.clarify;
+  const aiOn = ai.enabled && ai.key;
+
+  const seg = `
+    <div class="seg" id="composeSeg">
+      <button data-m="message" class="${mode==="message"?"on":""}">✉️ Draft a message</button>
+      <button data-m="clarify" class="${mode==="clarify"?"on":""}">✨ Clarify an idea</button>
+    </div>`;
+
+  const toneChips = [["friendly","😊 friendly"],["warm","🤝 warm"],["casual","😎 casual"],["professional","💼 professional"],["formal","🎩 formal"],["apologetic","🙏 apologetic"],["follow-up","🔁 follow-up"],["direct","🎯 direct"]];
+  const channelChips = [["Email","📧 Email"],["Slack","💬 Slack / Teams"],["Text","📱 Text / SMS"],["WhatsApp","🟢 WhatsApp"],["LinkedIn","in LinkedIn"],["Instagram","📸 Instagram DM"],["Discord","🎮 Discord"],["Other","✍️ Other"]];
+  const rels = [["manager","Manager / boss"],["colleague","Colleague"],["client","Client / customer"],["friend","Friend"],["family","Family"],["landlord","Landlord / housing"],["business","Business / service"],["recruiter","Recruiter"],["other","Other"]];
+  const styleChips = [["plain","🌿 plain & simple"],["sentence","📏 one sentence"],["paragraph","📄 short paragraph"],["bullets","• bullet points"]];
+
+  let form = "";
+  if (mode === "message") {
+    form = `
+    <div class="compose-card">
+      <h3>✉️ Draft a message</h3>
+      <p class="sub">Stuck on how to reply? Give the gist and who it's for. We'll write a draft you can copy and send yourself — no pressure, you're in charge of sending.</p>
+      <div class="field">
+        <label>What's the situation / what do you want to say?</label>
+        <textarea id="m_context" placeholder="e.g. I need to tell my manager I'll be late tomorrow because of a doctor's appointment, and ask if I can log on an hour later.">${escapeHtml(m.context)}</textarea>
+      </div>
+      <div class="field row">
+        <div>
+          <label>To (name & who they are)</label>
+          <input id="m_to" placeholder="e.g. Sarah, my manager" value="${escapeHtml(m.to)}" />
+        </div>
+        <div>
+          <label>Relationship</label>
+          <select id="m_rel">
+            ${rels.map(([v,l]) => `<option value="${v}" ${m.rel===v?"selected":""}>${l}</option>`).join("")}
+          </select>
+        </div>
+      </div>
+      <div class="field">
+        <label>Tone</label>
+        <div class="chip-row" id="m_tone">
+          ${toneChips.map(([v,l]) => `<button type="button" class="chip ${m.tone===v?"on":""}" data-v="${v}">${l}</button>`).join("")}
+        </div>
+      </div>
+      <div class="field">
+        <label>Where will you send it? <span style="text-transform:none;font-weight:400;color:var(--ink-faint);">(this shapes the format)</span></label>
+        <div class="chip-row" id="m_channel">
+          ${channelChips.map(([v,l]) => `<button type="button" class="chip ${m.channel===v?"on":""}" data-v="${v}">${l}</button>`).join("")}
+        </div>
+      </div>
+      <div class="field">
+        <label>Sign off as (optional)</label>
+        <input id="m_signoff" placeholder="e.g. Mary" value="${escapeHtml(m.signoff)}" />
+      </div>
+      <div class="ai-bar">
+        <label class="ai-toggle ${aiOn?"on":""}" id="aiToggle">
+          <span class="switch"></span>
+          <span class="ai-label">AI assist</span>
+        </label>
+        <button type="button" class="icon-btn gear" id="aiGear" title="AI settings">⚙️</button>
+        <button type="button" class="btn-big" id="m_draft">✍️ Draft message</button>
+      </div>
+    </div>
+    <div id="m_result"></div>`;
+  } else {
+    form = `
+    <div class="compose-card">
+      <h3>✨ Clarify an idea</h3>
+      <p class="sub">Braindump your messy thoughts exactly as they come. We'll rewrite them into something clear you can actually send or say out loud.</p>
+      <div class="field">
+        <label>Your braindump</label>
+        <textarea id="c_text" placeholder="e.g. so basically i just think like the meeting times are bad and um everyone's always tired and maybe we should do them later in the day or just fewer of them idk something's off">${escapeHtml(c.text)}</textarea>
+      </div>
+      <div class="field">
+        <label>How should it read?</label>
+        <div class="chip-row" id="c_style">
+          ${styleChips.map(([v,l]) => `<button type="button" class="chip ${c.style===v?"on":""}" data-v="${v}">${l}</button>`).join("")}
+        </div>
+      </div>
+      <div class="ai-bar">
+        <label class="ai-toggle ${aiOn?"on":""}" id="aiToggle">
+          <span class="switch"></span>
+          <span class="ai-label">AI assist</span>
+        </label>
+        <button type="button" class="icon-btn gear" id="aiGear" title="AI settings">⚙️</button>
+        <button type="button" class="btn-big" id="c_clarify">✨ Make it clear</button>
+      </div>
+    </div>
+    <div id="c_result"></div>`;
+  }
+
+  root.innerHTML = seg + form;
+
+  // segmented control
+  $$("#composeSeg button").forEach(b => b.onclick = () => {
+    state.composeMode = b.dataset.m;
+    composeDraft.lastResult = null;
+    save();
+    renderAll();
+  });
+
+  // chip selectors
+  const bindChips = (rowId, store, key) => {
+    const row = document.getElementById(rowId);
+    if (!row) return;
+    $$(".chip", row).forEach(ch => ch.onclick = () => {
+      $$(".chip", row).forEach(x => x.classList.remove("on"));
+      ch.classList.add("on");
+      store[key] = ch.dataset.v;
+    });
+  };
+  bindChips("m_tone", m, "tone");
+  bindChips("m_channel", m, "channel");
+  bindChips("c_style", c, "style");
+
+  // persist inputs as you type
+  const mc = document.getElementById("m_context"); if (mc) mc.oninput = () => m.context = mc.value;
+  const mt = document.getElementById("m_to");     if (mt) mt.oninput = () => m.to = mt.value;
+  const mr = document.getElementById("m_rel");   if (mr) mr.onchange = () => m.rel = mr.value;
+  const ms = document.getElementById("m_signoff"); if (ms) ms.oninput = () => m.signoff = ms.value;
+  const ct = document.getElementById("c_text");  if (ct) ct.oninput = () => c.text = ct.value;
+
+  // AI toggle + gear
+  const at = document.getElementById("aiToggle");
+  if (at) at.onclick = () => {
+    if (!settings.ai.key) { openSettings(); return; }
+    settings.ai.enabled = !settings.ai.enabled;
+    saveSettings();
+    renderAll();
+    toast(settings.ai.enabled ? "AI assist on ⚡" : "AI assist off — using offline drafts");
+  };
+  const ag = document.getElementById("aiGear");
+  if (ag) ag.onclick = openSettings;
+
+  // action buttons
+  const db = document.getElementById("m_draft"); if (db) db.onclick = () => runDraftMessage();
+  const cb = document.getElementById("c_clarify"); if (cb) cb.onclick = () => runClarify();
+
+  // re-show last result if we have one for this mode
+  if (composeDraft.lastResult && composeDraft.lastResult.mode === mode) {
+    renderComposeResult(composeDraft.lastResult);
+  }
+}
+
+function renderComposeResult(r) {
+  const box = document.getElementById(r.mode === "message" ? "m_result" : "c_result");
+  if (!box) return;
+  const fullText = (r.mode === "message" && r.subject) ? `Subject: ${r.subject}\n\n${r.body}` : r.body;
+  const subjectHtml = r.subject ? `<div class="rbody subject">Subject: ${escapeHtml(r.subject)}</div>` : "";
+  box.innerHTML = `
+    <div class="result">
+      <div class="rhead">
+        <span class="rlabel">${r.mode === "message" ? "Drafted message" : "Clearer version"}</span>
+        <span class="rmeta">${r.via === "ai" ? "AI-assisted" : "offline draft"}</span>
+      </div>
+      ${subjectHtml}
+      <div class="rbody">${escapeHtml(r.body)}</div>
+      <div class="ractions">
+        <button type="button" class="copy">📋 Copy</button>
+        <button type="button" data-regen>🔄 Regenerate</button>
+        ${r.mode === "message" ? `<button type="button" data-totask>+ Add "send" reminder</button>` : ""}
+      </div>
+    </div>`;
+  box.querySelector(".copy").onclick = () => copyText(fullText);
+  box.querySelector("[data-regen]").onclick = () => {
+    if (r.mode === "message") runDraftMessage(); else runClarify();
+  };
+  const addBtn = box.querySelector("[data-totask]");
+  if (addBtn) addBtn.onclick = () => {
+    const m = composeDraft.message;
+    const title = `Send message to ${m.to || "someone"}: ${truncate(cleanContext(m.context), 40)}`;
+    addTask(title, { status: "todo", energy: "any", minutes: 5 });
+    toast('Added a gentle "send" reminder to your tasks 📋');
+    renderAll();
+  };
+}
+
+async function runDraftMessage() {
+  const m = composeDraft.message;
+  if (!m.context.trim()) {
+    toast("Add some context first ✍️");
+    const el = document.getElementById("m_context"); if (el) el.focus();
+    return;
+  }
+  const box = document.getElementById("m_result");
+  if (box) box.innerHTML = `<div class="compose-loading"><span class="spinner"></span> ${settings.ai.enabled && settings.ai.key ? "Drafting with AI…" : "Drafting…"}</div>`;
+  const btn = document.getElementById("m_draft"); if (btn) btn.disabled = true;
+  try {
+    let res;
+    if (settings.ai.enabled && settings.ai.key) {
+      try { res = await aiDraftMessage(m); res.via = "ai"; }
+      catch (e) { toast("AI unavailable — used offline draft"); res = draftMessage(m); res.via = "offline"; }
+    } else {
+      res = draftMessage(m); res.via = "offline";
+    }
+    res.mode = "message";
+    composeDraft.lastResult = res;
+    renderComposeResult(res);
+  } finally {
+    if (btn) btn.disabled = false;
+  }
+}
+
+async function runClarify() {
+  const c = composeDraft.clarify;
+  if (!c.text.trim()) {
+    toast("Dump something first ✍️");
+    const el = document.getElementById("c_text"); if (el) el.focus();
+    return;
+  }
+  const box = document.getElementById("c_result");
+  if (box) box.innerHTML = `<div class="compose-loading"><span class="spinner"></span> ${settings.ai.enabled && settings.ai.key ? "Clarifying with AI…" : "Clarifying…"}</div>`;
+  const btn = document.getElementById("c_clarify"); if (btn) btn.disabled = true;
+  try {
+    let res;
+    if (settings.ai.enabled && settings.ai.key) {
+      try { res = await aiClarify(c.text, c.style); res.via = "ai"; }
+      catch (e) { toast("AI unavailable — used offline rewrite"); res = clarifyAndFormat(c.text, c.style); res.via = "offline"; }
+    } else {
+      res = clarifyAndFormat(c.text, c.style); res.via = "offline";
+    }
+    res.mode = "clarify";
+    composeDraft.lastResult = res;
+    renderComposeResult(res);
+  } finally {
+    if (btn) btn.disabled = false;
+  }
 }
 
 /* ---------- Boot ---------- */
