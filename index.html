@@ -1,0 +1,1717 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Gentle — an ADHD-friendly task manager</title>
+<style>
+  :root {
+    --bg: #f7f5f0;
+    --bg-card: #fffdf8;
+    --bg-soft: #efece4;
+    --ink: #2b2a33;
+    --ink-soft: #6b6a78;
+    --ink-faint: #a8a6b2;
+    --line: #e6e2d8;
+    --accent: #3f8f8a;
+    --accent-soft: #d6ebe8;
+    --accent-ink: #2c6a66;
+    --low: #6b9fd4;
+    --low-soft: #dce8f5;
+    --med: #d9a441;
+    --med-soft: #f6e8c8;
+    --high: #d97070;
+    --high-soft: #f6dada;
+    --done: #7ba86b;
+    --done-soft: #e0eccd;
+    --warn: #c98a4b;
+    --warn-soft: #f3e3cf;
+    --shadow: 0 1px 3px rgba(43,42,51,0.06), 0 4px 16px rgba(43,42,51,0.05);
+    --radius: 14px;
+    --radius-sm: 9px;
+  }
+
+  * { box-sizing: border-box; }
+
+  html, body {
+    margin: 0;
+    padding: 0;
+    background: var(--bg);
+    color: var(--ink);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    font-size: 16px;
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  body { min-height: 100vh; }
+
+  button {
+    font-family: inherit;
+    font-size: inherit;
+    cursor: pointer;
+    border: none;
+    background: none;
+    color: inherit;
+  }
+
+  input, textarea, select {
+    font-family: inherit;
+    font-size: inherit;
+    color: inherit;
+  }
+
+  /* ---------- Layout ---------- */
+  .wrap {
+    max-width: 880px;
+    margin: 0 auto;
+    padding: 20px 18px 80px;
+  }
+
+  header.top {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    flex-wrap: wrap;
+    margin-bottom: 18px;
+  }
+
+  .brand {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-weight: 700;
+    font-size: 20px;
+    letter-spacing: -0.01em;
+  }
+  .brand .logo {
+    width: 30px; height: 30px;
+    border-radius: 9px;
+    background: linear-gradient(135deg, var(--accent), #5fb0a3);
+    display: grid; place-items: center;
+    color: #fff;
+    font-size: 16px;
+  }
+  .brand .tag {
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--ink-soft);
+    background: var(--bg-soft);
+    padding: 3px 8px;
+    border-radius: 999px;
+  }
+
+  .top-right {
+    margin-left: auto;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .streak {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    background: var(--bg-card);
+    border: 1px solid var(--line);
+    padding: 7px 12px;
+    border-radius: 999px;
+    font-weight: 600;
+    font-size: 14px;
+    box-shadow: var(--shadow);
+  }
+  .streak .flame { font-size: 16px; }
+  .streak.zero { color: var(--ink-faint); }
+
+  /* ---------- Energy selector ---------- */
+  .energy-pick {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: var(--bg-card);
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    padding: 5px;
+    box-shadow: var(--shadow);
+  }
+  .energy-pick .label {
+    font-size: 12px;
+    color: var(--ink-soft);
+    padding: 0 6px 0 8px;
+    font-weight: 500;
+  }
+  .energy-pick button {
+    padding: 6px 12px;
+    border-radius: 999px;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--ink-soft);
+    transition: all .15s;
+  }
+  .energy-pick button[data-e="low"].on  { background: var(--low-soft);  color: #3a6fa3; }
+  .energy-pick button[data-e="med"].on  { background: var(--med-soft);  color: #9a6f1f; }
+  .energy-pick button[data-e="high"].on { background: var(--high-soft); color: #a44a4a; }
+
+  /* ---------- Quick capture ---------- */
+  .capture {
+    display: flex;
+    gap: 10px;
+    background: var(--bg-card);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    padding: 12px;
+    box-shadow: var(--shadow);
+    margin-bottom: 18px;
+  }
+  .capture input {
+    flex: 1;
+    border: none;
+    background: transparent;
+    outline: none;
+    font-size: 17px;
+    padding: 6px 4px;
+  }
+  .capture input::placeholder { color: var(--ink-faint); }
+  .capture button {
+    background: var(--accent);
+    color: #fff;
+    padding: 9px 18px;
+    border-radius: var(--radius-sm);
+    font-weight: 600;
+    font-size: 14px;
+    transition: transform .08s, background .15s;
+  }
+  .capture button:hover { background: var(--accent-ink); }
+  .capture button:active { transform: scale(0.96); }
+  .capture .hint {
+    font-size: 11px;
+    color: var(--ink-faint);
+    align-self: center;
+    padding-right: 4px;
+  }
+
+  /* ---------- Tabs ---------- */
+  .tabs {
+    display: flex;
+    gap: 4px;
+    background: var(--bg-soft);
+    padding: 5px;
+    border-radius: 999px;
+    margin-bottom: 18px;
+  }
+  .tabs button {
+    flex: 1;
+    padding: 9px 10px;
+    border-radius: 999px;
+    font-weight: 600;
+    font-size: 14px;
+    color: var(--ink-soft);
+    transition: all .15s;
+  }
+  .tabs button.on {
+    background: var(--bg-card);
+    color: var(--ink);
+    box-shadow: var(--shadow);
+  }
+  .tabs button .count {
+    font-size: 11px;
+    background: var(--bg-soft);
+    padding: 1px 6px;
+    border-radius: 999px;
+    margin-left: 5px;
+    color: var(--ink-soft);
+  }
+  .tabs button.on .count { background: var(--accent-soft); color: var(--accent-ink); }
+
+  /* ---------- Task card ---------- */
+  .task {
+    background: var(--bg-card);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    padding: 14px 16px;
+    margin-bottom: 10px;
+    box-shadow: var(--shadow);
+    transition: border-color .15s, transform .1s;
+  }
+  .task.doing { border-color: var(--accent); border-left: 4px solid var(--accent); }
+  .task.done  { opacity: 0.62; }
+  .task.overdue-soft { border-color: var(--warn); }
+
+  .task-head {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+  }
+  .check {
+    flex: none;
+    width: 26px; height: 26px;
+    border-radius: 50%;
+    border: 2px solid var(--line);
+    background: var(--bg-card);
+    display: grid; place-items: center;
+    transition: all .15s;
+    margin-top: 1px;
+  }
+  .check:hover { border-color: var(--accent); }
+  .check .dot {
+    width: 12px; height: 12px;
+    border-radius: 50%;
+    background: var(--done);
+    transform: scale(0);
+    transition: transform .2s cubic-bezier(.5,1.6,.5,1);
+  }
+  .task.done .check { border-color: var(--done); background: var(--done-soft); }
+  .task.done .check .dot { transform: scale(1); }
+
+  .task-body { flex: 1; min-width: 0; }
+  .task-title {
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--ink);
+    word-break: break-word;
+  }
+  .task.done .task-title { text-decoration: line-through; color: var(--ink-soft); }
+
+  .task-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-top: 8px;
+    align-items: center;
+  }
+  .tag {
+    font-size: 12px;
+    font-weight: 600;
+    padding: 3px 9px;
+    border-radius: 999px;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+  }
+  .tag.low  { background: var(--low-soft);  color: #3a6fa3; }
+  .tag.med  { background: var(--med-soft);  color: #9a6f1f; }
+  .tag.high { background: var(--high-soft); color: #a44a4a; }
+  .tag.any  { background: var(--bg-soft);   color: var(--ink-soft); }
+  .tag.time { background: var(--bg-soft);   color: var(--ink-soft); }
+  .tag.match { background: var(--accent-soft); color: var(--accent-ink); }
+
+  .task-actions {
+    display: flex;
+    gap: 4px;
+    flex: none;
+  }
+  .icon-btn {
+    width: 32px; height: 32px;
+    border-radius: 8px;
+    color: var(--ink-faint);
+    display: grid; place-items: center;
+    font-size: 15px;
+    transition: all .12s;
+  }
+  .icon-btn:hover { background: var(--bg-soft); color: var(--ink); }
+  .icon-btn.danger:hover { background: var(--high-soft); color: #a44a4a; }
+
+  /* steps */
+  .steps { margin: 10px 0 2px 38px; }
+  .step {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    padding: 5px 0;
+    font-size: 14px;
+    color: var(--ink-soft);
+  }
+  .step .mini-check {
+    flex: none;
+    width: 18px; height: 18px;
+    border-radius: 5px;
+    border: 2px solid var(--line);
+    display: grid; place-items: center;
+    transition: all .15s;
+  }
+  .step .mini-check:hover { border-color: var(--accent); }
+  .step.done .mini-check { background: var(--accent); border-color: var(--accent); color: #fff; }
+  .step.done .mini-check::after { content: "✓"; font-size: 11px; font-weight: 700; }
+  .step.done .text { text-decoration: line-through; color: var(--ink-faint); }
+  .step .text { flex: 1; }
+  .step .rm { color: var(--ink-faint); font-size: 12px; opacity: 0; transition: opacity .12s; }
+  .step:hover .rm { opacity: 1; }
+  .step .rm:hover { color: #a44a4a; }
+
+  .add-step {
+    margin-left: 38px;
+    margin-top: 6px;
+    display: flex;
+    gap: 6px;
+    align-items: center;
+  }
+  .add-step input {
+    border: 1px solid var(--line);
+    border-radius: 7px;
+    padding: 5px 9px;
+    font-size: 13px;
+    background: var(--bg);
+    outline: none;
+    flex: 1;
+    max-width: 320px;
+  }
+  .add-step input:focus { border-color: var(--accent); }
+  .add-step button {
+    font-size: 12px;
+    color: var(--accent-ink);
+    font-weight: 600;
+    padding: 5px 9px;
+    border-radius: 7px;
+  }
+  .add-step button:hover { background: var(--accent-soft); }
+
+  .progress {
+    margin-left: 38px;
+    margin-top: 8px;
+    height: 6px;
+    background: var(--bg-soft);
+    border-radius: 999px;
+    overflow: hidden;
+  }
+  .progress .bar {
+    height: 100%;
+    background: var(--accent);
+    border-radius: 999px;
+    transition: width .3s ease;
+  }
+
+  /* gentle overdue banner */
+  .gentle {
+    background: var(--warn-soft);
+    border: 1px solid #e6cfac;
+    border-radius: var(--radius);
+    padding: 12px 16px;
+    margin-bottom: 14px;
+    font-size: 14px;
+    color: #8a5f2a;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+  .gentle .emoji { font-size: 18px; }
+  .gentle button {
+    background: #fff;
+    border: 1px solid #e6cfac;
+    padding: 5px 11px;
+    border-radius: 999px;
+    font-size: 12px;
+    font-weight: 600;
+    color: #8a5f2a;
+  }
+  .gentle button:hover { background: #f8eed8; }
+
+  /* empty states */
+  .empty {
+    text-align: center;
+    padding: 50px 20px;
+    color: var(--ink-faint);
+  }
+  .empty .big { font-size: 42px; margin-bottom: 10px; }
+  .empty h3 { color: var(--ink-soft); font-weight: 600; margin: 0 0 6px; }
+  .empty p { margin: 0; font-size: 14px; max-width: 360px; margin: 0 auto; }
+
+  .section-label {
+    font-size: 12px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--ink-faint);
+    margin: 18px 2px 8px;
+  }
+
+  /* ---------- Focus mode ---------- */
+  .focus-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(247,245,240,0.98);
+    z-index: 50;
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    padding: 24px;
+    overflow: auto;
+  }
+  .focus-overlay.show { display: flex; }
+  .focus-close {
+    position: absolute;
+    top: 18px; right: 18px;
+    width: 40px; height: 40px;
+    border-radius: 50%;
+    background: var(--bg-card);
+    border: 1px solid var(--line);
+    color: var(--ink-soft);
+    font-size: 18px;
+    box-shadow: var(--shadow);
+  }
+  .focus-close:hover { color: var(--ink); }
+
+  .focus-task {
+    max-width: 620px;
+    width: 100%;
+    text-align: center;
+    margin-top: 30px;
+  }
+  .focus-task .label {
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--accent-ink);
+    font-weight: 700;
+    margin-bottom: 10px;
+  }
+  .focus-task h1 {
+    font-size: 30px;
+    font-weight: 700;
+    margin: 0 0 14px;
+    line-height: 1.25;
+    letter-spacing: -0.01em;
+  }
+  .focus-task .tags { display: flex; gap: 8px; justify-content: center; margin-bottom: 26px; }
+
+  .timer-ring {
+    position: relative;
+    width: 240px; height: 240px;
+    margin: 10px auto 18px;
+  }
+  .timer-ring svg { transform: rotate(-90deg); }
+  .timer-ring .bg-c { fill: none; stroke: var(--bg-soft); stroke-width: 14; }
+  .timer-ring .fg-c {
+    fill: none; stroke: var(--accent); stroke-width: 14;
+    stroke-linecap: round;
+    transition: stroke-dashoffset .5s linear, stroke .3s;
+  }
+  .timer-ring.break .fg-c { stroke: var(--med); }
+  .timer-ring .time {
+    position: absolute; inset: 0;
+    display: grid; place-items: center;
+    flex-direction: column;
+    text-align: center;
+  }
+  .timer-ring .time .mm {
+    font-size: 46px;
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+    letter-spacing: -0.02em;
+  }
+  .timer-ring .time .phase {
+    font-size: 12px;
+    color: var(--ink-soft);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    font-weight: 600;
+    margin-top: 2px;
+  }
+
+  .timer-controls {
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+    margin-bottom: 20px;
+  }
+  .timer-controls button {
+    padding: 11px 22px;
+    border-radius: 999px;
+    font-weight: 600;
+    font-size: 15px;
+    background: var(--bg-card);
+    border: 1px solid var(--line);
+    color: var(--ink);
+    box-shadow: var(--shadow);
+    transition: transform .08s;
+  }
+  .timer-controls button:active { transform: scale(0.96); }
+  .timer-controls .primary {
+    background: var(--accent); color: #fff; border-color: var(--accent);
+  }
+  .timer-controls .primary:hover { background: var(--accent-ink); }
+  .timer-controls .skip { color: var(--ink-soft); }
+
+  .body-double {
+    max-width: 620px;
+    width: 100%;
+    background: var(--bg-card);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    padding: 16px 18px;
+    margin-top: 10px;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    box-shadow: var(--shadow);
+  }
+  .bd-avatar {
+    flex: none;
+    width: 44px; height: 44px;
+    border-radius: 50%;
+    background: var(--accent-soft);
+    display: grid; place-items: center;
+    font-size: 22px;
+    position: relative;
+  }
+  .bd-avatar::after {
+    content: "";
+    position: absolute;
+    bottom: 1px; right: 1px;
+    width: 10px; height: 10px;
+    border-radius: 50%;
+    background: var(--done);
+    border: 2px solid var(--bg-card);
+  }
+  .bd-text { font-size: 14px; color: var(--ink-soft); }
+  .bd-text strong { color: var(--ink); }
+
+  .focus-steps {
+    max-width: 620px;
+    width: 100%;
+    margin-top: 18px;
+    text-align: left;
+  }
+  .focus-steps .step {
+    background: var(--bg-card);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-sm);
+    padding: 12px 14px;
+    margin-bottom: 8px;
+    font-size: 15px;
+    color: var(--ink);
+  }
+  .focus-steps .step.done { color: var(--ink-faint); }
+  .focus-steps .step .mini-check { width: 22px; height: 22px; }
+  .focus-steps .step.done .mini-check::after { font-size: 13px; }
+
+  .focus-done-btn {
+    margin-top: 18px;
+    padding: 14px 30px;
+    border-radius: 999px;
+    background: var(--done);
+    color: #fff;
+    font-weight: 700;
+    font-size: 16px;
+    box-shadow: var(--shadow);
+    transition: transform .08s;
+  }
+  .focus-done-btn:hover { background: #6a9a5b; }
+  .focus-done-btn:active { transform: scale(0.96); }
+
+  /* ---------- Edit popover ---------- */
+  .popover {
+    position: fixed;
+    inset: 0;
+    background: rgba(43,42,51,0.35);
+    z-index: 60;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+  }
+  .popover.show { display: flex; }
+  .popover .card {
+    background: var(--bg-card);
+    border-radius: var(--radius);
+    box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+    padding: 22px;
+    width: 100%;
+    max-width: 460px;
+  }
+  .popover h3 { margin: 0 0 16px; font-size: 18px; }
+  .field { margin-bottom: 14px; }
+  .field label { display: block; font-size: 12px; font-weight: 600; color: var(--ink-soft); margin-bottom: 5px; text-transform: uppercase; letter-spacing: 0.04em; }
+  .field input, .field select, .field textarea {
+    width: 100%;
+    border: 1px solid var(--line);
+    border-radius: 9px;
+    padding: 9px 11px;
+    background: var(--bg);
+    outline: none;
+  }
+  .field input:focus, .field select:focus { border-color: var(--accent); }
+  .field.row { display: flex; gap: 12px; }
+  .field.row > * { flex: 1; }
+  .chip-row { display: flex; gap: 6px; flex-wrap: wrap; }
+  .chip {
+    padding: 7px 13px;
+    border-radius: 999px;
+    border: 1px solid var(--line);
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--ink-soft);
+    background: var(--bg);
+  }
+  .chip.on.low  { background: var(--low-soft);  border-color: var(--low);  color: #3a6fa3; }
+  .chip.on.med  { background: var(--med-soft);  border-color: var(--med);  color: #9a6f1f; }
+  .chip.on.high { background: var(--high-soft); border-color: var(--high); color: #a44a4a; }
+  .chip.on.any  { background: var(--accent-soft); border-color: var(--accent); color: var(--accent-ink); }
+  .popover .actions { display: flex; gap: 10px; justify-content: flex-end; margin-top: 6px; }
+  .btn {
+    padding: 9px 18px;
+    border-radius: 9px;
+    font-weight: 600;
+    font-size: 14px;
+  }
+  .btn.ghost { color: var(--ink-soft); }
+  .btn.ghost:hover { background: var(--bg-soft); }
+  .btn.primary { background: var(--accent); color: #fff; }
+  .btn.primary:hover { background: var(--accent-ink); }
+
+  /* breakdown templates */
+  .tpl-list { display: flex; flex-direction: column; gap: 6px; margin-top: 4px; }
+  .tpl {
+    text-align: left;
+    padding: 10px 12px;
+    border: 1px solid var(--line);
+    border-radius: 9px;
+    background: var(--bg);
+    font-size: 13px;
+  }
+  .tpl:hover { border-color: var(--accent); background: var(--accent-soft); }
+  .tpl .name { font-weight: 600; color: var(--ink); }
+  .tpl .desc { color: var(--ink-soft); font-size: 12px; margin-top: 2px; }
+
+  /* confetti */
+  #confetti {
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 100;
+  }
+
+  /* toast */
+  .toast {
+    position: fixed;
+    bottom: 24px;
+    left: 50%;
+    transform: translateX(-50%) translateY(20px);
+    background: var(--ink);
+    color: #fff;
+    padding: 11px 20px;
+    border-radius: 999px;
+    font-size: 14px;
+    font-weight: 600;
+    box-shadow: 0 6px 20px rgba(0,0,0,0.25);
+    opacity: 0;
+    transition: all .25s;
+    z-index: 80;
+    pointer-events: none;
+  }
+  .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+  /* shortcuts hint */
+  .shortcuts {
+    text-align: center;
+    color: var(--ink-faint);
+    font-size: 11px;
+    margin-top: 22px;
+    line-height: 1.8;
+  }
+  .shortcuts kbd {
+    background: var(--bg-card);
+    border: 1px solid var(--line);
+    border-radius: 5px;
+    padding: 1px 6px;
+    font-family: ui-monospace, monospace;
+    font-size: 11px;
+    color: var(--ink-soft);
+  }
+
+  @media (max-width: 560px) {
+    .wrap { padding: 14px 12px 70px; }
+    .brand .tag { display: none; }
+    .top-right { width: 100%; justify-content: space-between; }
+    .tabs button { font-size: 13px; padding: 8px 6px; }
+    .tabs button .count { display: none; }
+    .focus-task h1 { font-size: 24px; }
+    .timer-ring { width: 200px; height: 200px; }
+    .timer-ring .time .mm { font-size: 38px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <header class="top">
+    <div class="brand">
+      <div class="logo">🌿</div>
+      <span>Gentle</span>
+      <span class="tag">ADHD-friendly</span>
+    </div>
+    <div class="top-right">
+      <div class="energy-pick" title="How much energy do you have right now?">
+        <span class="label">energy</span>
+        <button data-e="low">🌱 low</button>
+        <button data-e="med">⚡ medium</button>
+        <button data-e="high">🔥 high</button>
+      </div>
+      <div class="streak zero" id="streak" title="Days in a row you've finished at least one task">
+        <span class="flame">🔥</span><span id="streakNum">0</span>
+      </div>
+    </div>
+  </header>
+
+  <!-- Quick capture / brain dump -->
+  <div class="capture">
+    <input id="capture" placeholder="Brain dump — type anything on your mind, press Enter…" autocomplete="off" />
+    <span class="hint">⏎</span>
+    <button id="captureBtn">Capture</button>
+  </div>
+
+  <!-- Gentle overdue nudge -->
+  <div id="gentleNudge"></div>
+
+  <!-- Tabs -->
+  <div class="tabs">
+    <button data-view="now">▶ Now</button>
+    <button data-view="today">☀️ Today</button>
+    <button data-view="inbox">📥 Inbox</button>
+    <button data-view="all">☰ All</button>
+  </div>
+
+  <div id="view"></div>
+
+  <div class="shortcuts">
+    <kbd>/</kbd> capture &nbsp; <kbd>n</kbd> now &nbsp; <kbd>t</kbd> today &nbsp; <kbd>i</kbd> inbox &nbsp; <kbd>a</kbd> all &nbsp; <kbd>space</kbd> start/pause timer &nbsp; <kbd>esc</kbd> close
+  </div>
+</div>
+
+<!-- Focus mode overlay -->
+<div class="focus-overlay" id="focusOverlay">
+  <button class="focus-close" id="focusClose" title="Close (esc)">✕</button>
+  <div class="focus-task">
+    <div class="label">ONE THING AT A TIME</div>
+    <h1 id="focusTitle">—</h1>
+    <div class="tags" id="focusTags"></div>
+  </div>
+  <div class="timer-ring" id="timerRing">
+    <svg width="240" height="240" viewBox="0 0 240 240">
+      <circle class="bg-c" cx="120" cy="120" r="106" />
+      <circle class="fg-c" cx="120" cy="120" r="106" id="timerArc" />
+    </svg>
+    <div class="time">
+      <div>
+        <div class="mm" id="timerText">25:00</div>
+        <div class="phase" id="timerPhase">focus</div>
+      </div>
+    </div>
+  </div>
+  <div class="timer-controls">
+    <button class="primary" id="timerToggle">Start</button>
+    <button id="timerReset">Reset</button>
+    <button class="skip" id="timerSkip">Skip ›</button>
+  </div>
+  <div class="body-double" id="bodyDouble">
+    <div class="bd-avatar">🤝</div>
+    <div class="bd-text" id="bdText"><strong>I'm right here with you.</strong> No rush. Just start the timer and do what you can. I'll stay the whole time.</div>
+  </div>
+  <div class="focus-steps" id="focusSteps"></div>
+  <button class="focus-done-btn" id="focusDone">✓ I did it!</button>
+</div>
+
+<!-- Edit popover -->
+<div class="popover" id="popover">
+  <div class="card" id="popoverCard"></div>
+</div>
+
+<canvas id="confetti"></canvas>
+<div class="toast" id="toast"></div>
+
+<script>
+"use strict";
+
+/* ============================================================
+   Gentle — an ADHD-friendly task manager
+   Single-file, offline, localStorage. No frameworks.
+   ============================================================ */
+
+const STORAGE_KEY = "gentle.tasks.v1";
+const SETTINGS_KEY = "gentle.settings.v1";
+const TODAY = () => new Date().toISOString().slice(0,10);
+
+/* ---------- State ---------- */
+let state = {
+  tasks: [],
+  energy: "med",
+  streak: { count: 0, lastDate: null },
+  view: "now",
+  focusTaskId: null,
+};
+let settings = {
+  focusMinutes: 25,
+  breakMinutes: 5,
+};
+
+/* ---------- Persistence ---------- */
+function load() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (raw) {
+      const s = JSON.parse(raw);
+      state = Object.assign(state, s);
+    }
+  } catch (e) { console.warn("load failed", e); }
+  try {
+    const rs = localStorage.getItem(SETTINGS_KEY);
+    if (rs) settings = Object.assign(settings, JSON.parse(rs));
+  } catch (e) {}
+}
+function save() {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+}
+function saveSettings() {
+  localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings));
+}
+
+/* ---------- Helpers ---------- */
+const uid = () => Math.random().toString(36).slice(2, 10) + Date.now().toString(36).slice(-4);
+const $ = (sel, root=document) => root.querySelector(sel);
+const $$ = (sel, root=document) => Array.from(root.querySelectorAll(sel));
+
+function escapeHtml(s) {
+  return String(s).replace(/[&<>"']/g, c => ({'&':'&','<':'<','>':'>','"':'"',"'":'&#39;'}[c]));
+}
+
+function energyMatch(taskEnergy, userEnergy) {
+  if (taskEnergy === "any") return true;
+  if (taskEnergy === "low")  return userEnergy === "low" || userEnergy === "med" || userEnergy === "high";
+  if (taskEnergy === "med")  return userEnergy === "med" || userEnergy === "high";
+  if (taskEnergy === "high") return userEnergy === "high";
+  return false;
+}
+
+const ENCOURAGE = [
+  "You did it! 🎉", "Look at you go! ✨", "One less thing on your plate. 🌿",
+  "That's a win. Savor it. 🌟", "Done is better than perfect. 💫",
+  "Your future self says thanks. 🙌", "Momentum: unlocked. ⚡",
+  "Brain: thanked. 🧠", "Tiny step, real progress. 🌱",
+];
+
+/* ---------- Task ops ---------- */
+function addTask(title, opts={}) {
+  const t = {
+    id: uid(),
+    title: title.trim(),
+    energy: opts.energy || "any",
+    minutes: opts.minutes || null,
+    steps: opts.steps || [],
+    status: opts.status || "inbox",
+    createdAt: Date.now(),
+    scheduledFor: opts.scheduledFor || null,
+    completedAt: null,
+  };
+  state.tasks.unshift(t);
+  save();
+  return t;
+}
+
+function getTask(id) { return state.tasks.find(t => t.id === id); }
+
+function updateTask(id, patch) {
+  const t = getTask(id);
+  if (!t) return;
+  Object.assign(t, patch);
+  save();
+}
+
+function deleteTask(id) {
+  state.tasks = state.tasks.filter(t => t.id !== id);
+  save();
+}
+
+function toggleDone(id) {
+  const t = getTask(id);
+  if (!t) return;
+  if (t.status === "done") {
+    t.status = "todo";
+    t.completedAt = null;
+  } else {
+    t.status = "done";
+    t.completedAt = Date.now();
+    bumpStreak();
+    celebrate();
+    toast(pick(ENCOURAGE));
+  }
+  save();
+}
+
+function bumpStreak() {
+  const today = TODAY();
+  if (state.streak.lastDate === today) return;
+  const yesterday = new Date(Date.now() - 86400000).toISOString().slice(0,10);
+  if (state.streak.lastDate === yesterday) state.streak.count += 1;
+  else state.streak.count = 1;
+  state.streak.lastDate = today;
+  save();
+}
+
+function stepProgress(t) {
+  if (!t.steps.length) return null;
+  const done = t.steps.filter(s => s.done).length;
+  return { done, total: t.steps.length, pct: Math.round(done/t.steps.length*100) };
+}
+
+/* ---------- Streak display ---------- */
+function renderStreak() {
+  const el = $("#streak");
+  $("#streakNum").textContent = state.streak.count;
+  el.classList.toggle("zero", state.streak.count === 0);
+}
+
+/* ---------- Energy selector ---------- */
+function renderEnergy() {
+  $$(".energy-pick button").forEach(b => {
+    b.classList.toggle("on", b.dataset.e === state.energy);
+  });
+}
+
+/* ---------- Tabs ---------- */
+function renderTabs() {
+  const counts = {
+    now: state.tasks.filter(t => t.status !== "done" && (t.status === "doing" || (t.status === "todo" && energyMatch(t.energy, state.energy)))).length,
+    today: state.tasks.filter(t => t.status !== "done" && (t.status === "doing" || t.status === "todo")).length,
+    inbox: state.tasks.filter(t => t.status === "inbox").length,
+    all: state.tasks.filter(t => t.status !== "done").length,
+  };
+  $$(".tabs button").forEach(b => {
+    b.classList.toggle("on", b.dataset.view === state.view);
+    const c = counts[b.dataset.view];
+    b.innerHTML = labelFor(b.dataset.view) + (c > 0 ? ` <span class="count">${c}</span>` : "");
+  });
+}
+function labelFor(v) {
+  return { now:"▶ Now", today:"☀️ Today", inbox:"📥 Inbox", all:"☰ All" }[v];
+}
+
+/* ---------- Gentle overdue nudge ---------- */
+function renderGentleNudge() {
+  const box = $("#gentleNudge");
+  const overdue = state.tasks.filter(t =>
+    t.status !== "done" && t.scheduledFor && t.scheduledFor < TODAY()
+  );
+  if (!overdue.length) { box.innerHTML = ""; return; }
+  const n = overdue.length;
+  box.innerHTML = `
+    <div class="gentle">
+      <span class="emoji">🫶</span>
+      <span>${n === 1 ? "A task from before today is still waiting — no guilt, it happens." : `${n} tasks from earlier are still waiting — no guilt, it happens.`}</span>
+      <button id="nudgeToday">Move all to today</button>
+      <button id="nudgeLater">Clear their dates</button>
+    </div>`;
+  $("#nudgeToday").onclick = () => {
+    overdue.forEach(t => updateTask(t.id, { scheduledFor: TODAY(), status: t.status === "inbox" ? "todo" : t.status }));
+    toast("Moved gently to today 💛");
+    renderAll();
+  };
+  $("#nudgeLater").onclick = () => {
+    overdue.forEach(t => updateTask(t.id, { scheduledFor: null }));
+    toast("Dates cleared. No pressure. 🌿");
+    renderAll();
+  };
+}
+
+/* ---------- Views ---------- */
+function renderView() {
+  const v = state.view;
+  const root = $("#view");
+  if (v === "now") renderNow(root);
+  else if (v === "today") renderToday(root);
+  else if (v === "inbox") renderInbox(root);
+  else renderAllView(root);
+}
+
+function renderNow(root) {
+  // pick the best next task
+  const candidates = state.tasks.filter(t => t.status !== "done");
+  let pick =
+    candidates.find(t => t.status === "doing") ||
+    candidates.find(t => t.status === "todo" && energyMatch(t.energy, state.energy)) ||
+    candidates.find(t => t.status === "todo") ||
+    candidates.find(t => t.status === "inbox" && energyMatch(t.energy, state.energy)) ||
+    candidates.find(t => t.status === "inbox") ||
+    null;
+
+  if (!pick) {
+    root.innerHTML = `
+      <div class="empty">
+        <div class="big">🎉</div>
+        <h3>Nothing on your plate</h3>
+        <p>That's a real feeling. Dump anything in the box above, or just take a breath. You're doing fine.</p>
+      </div>`;
+    return;
+  }
+
+  const p = stepProgress(pick);
+  const progressHtml = p ? `<div class="progress"><div class="bar" style="width:${p.pct}%"></div></div>` : "";
+  const stepsHtml = renderSteps(pick);
+  const matchBadge = (pick.status === "todo" || pick.status === "inbox") && energyMatch(pick.energy, state.energy)
+    ? `<span class="tag match">✓ fits your energy</span>` : "";
+
+  root.innerHTML = `
+    <div class="section-label">Your one next thing</div>
+    <div class="task doing" data-id="${pick.id}">
+      <div class="task-head">
+        <button class="check" data-act="done"><span class="dot"></span></button>
+        <div class="task-body">
+          <div class="task-title">${escapeHtml(pick.title)}</div>
+          <div class="task-meta">
+            ${energyTag(pick.energy)}
+            ${pick.minutes ? `<span class="tag time">⏱ ${pick.minutes}m</span>` : ""}
+            ${matchBadge}
+          </div>
+          ${stepsHtml}
+          ${progressHtml}
+        </div>
+        <div class="task-actions">
+          <button class="icon-btn" data-act="focus" title="Focus mode">🎯</button>
+          <button class="icon-btn" data-act="edit" title="Edit">✎</button>
+        </div>
+      </div>
+    </div>
+    <div style="text-align:center; margin-top:18px;">
+      <button id="startFocusBig" style="padding:13px 28px;border-radius:999px;background:var(--accent);color:#fff;font-weight:700;font-size:15px;box-shadow:var(--shadow);">🎯 Start focus session</button>
+    </div>`;
+
+  bindTaskCard(root);
+  $("#startFocusBig").onclick = () => openFocus(pick.id);
+}
+
+function renderToday(root) {
+  const tasks = state.tasks.filter(t => t.status !== "done" && (t.status === "doing" || t.status === "todo"));
+  if (!tasks.length) {
+    root.innerHTML = `
+      <div class="empty">
+        <div class="big">☀️</div>
+        <h3>Today is open</h3>
+        <p>Pull something from your Inbox, or just capture what's on your mind. No need to plan the whole day.</p>
+      </div>`;
+    return;
+  }
+  // sort: doing first, then energy-matching, then by scheduled
+  tasks.sort((a,b) => {
+    if (a.status === "doing" && b.status !== "doing") return -1;
+    if (b.status === "doing" && a.status !== "doing") return 1;
+    const am = energyMatch(a.energy, state.energy) ? 0 : 1;
+    const bm = energyMatch(b.energy, state.energy) ? 0 : 1;
+    if (am !== bm) return am - bm;
+    return 0;
+  });
+  root.innerHTML = `<div class="section-label">Today</div>` + tasks.map(taskCard).join("");
+  bindTaskCards(root);
+}
+
+function renderInbox(root) {
+  const tasks = state.tasks.filter(t => t.status === "inbox");
+  if (!tasks.length) {
+    root.innerHTML = `
+      <div class="empty">
+        <div class="big">📥</div>
+        <h3>Inbox is clear</h3>
+        <p>Whenever a thought pops up — a chore, an idea, a "I should…" — type it above and hit Enter. Sort it later.</p>
+      </div>`;
+    return;
+  }
+  root.innerHTML = `
+    <div class="section-label">Brain dump — sort when you're ready</div>
+    <p style="font-size:13px;color:var(--ink-soft);margin:0 2px 12px;">Tap ✎ to give it an energy level and time, which moves it to Today.</p>
+    ${tasks.map(taskCard).join("")}`;
+  bindTaskCards(root);
+}
+
+function renderAllView(root) {
+  const active = state.tasks.filter(t => t.status !== "done");
+  const done = state.tasks.filter(t => t.status === "done").sort((a,b) => (b.completedAt||0) - (a.completedAt||0)).slice(0, 12);
+  let html = "";
+  if (active.length) {
+    html += `<div class="section-label">All open (${active.length})</div>` + active.map(taskCard).join("");
+  }
+  if (done.length) {
+    html += `<div class="section-label">Recently completed 🌿</div>` + done.map(taskCard).join("");
+  }
+  if (!active.length && !done.length) {
+    html = `<div class="empty"><div class="big">🌿</div><h3>Nothing here yet</h3><p>Capture your first thought above.</p></div>`;
+  }
+  root.innerHTML = html;
+  bindTaskCards(root);
+}
+
+/* ---------- Task card rendering ---------- */
+function energyTag(e) {
+  const map = { low:"🌱 low", med:"⚡ medium", high:"🔥 high", any:"🟡 any energy" };
+  return `<span class="tag ${e}">${map[e]||e}</span>`;
+}
+
+function renderSteps(t) {
+  if (!t.steps.length) return "";
+  let html = `<div class="steps">`;
+  for (const s of t.steps) {
+    html += `
+      <div class="step ${s.done?"done":""}" data-step="${s.id}">
+        <button class="mini-check" data-act="step"></button>
+        <span class="text">${escapeHtml(s.text)}</span>
+        <button class="rm" data-act="rm-step">✕</button>
+      </div>`;
+  }
+  html += `</div>`;
+  return html;
+}
+
+function taskCard(t) {
+  const p = stepProgress(t);
+  const progressHtml = p ? `<div class="progress"><div class="bar" style="width:${p.pct}%"></div></div>` : "";
+  const matchBadge = (t.status === "todo" || t.status === "inbox") && energyMatch(t.energy, state.energy)
+    ? `<span class="tag match">✓ fits</span>` : "";
+  const stepsHtml = renderSteps(t);
+  const addStepHtml = `
+    <div class="add-step">
+      <input placeholder="add a tiny step…" data-add-step />
+      <button data-act="add-step">+ step</button>
+    </div>`;
+  return `
+    <div class="task ${t.status==="doing"?"doing":""} ${t.status==="done"?"done":""}" data-id="${t.id}">
+      <div class="task-head">
+        <button class="check" data-act="done"><span class="dot"></span></button>
+        <div class="task-body">
+          <div class="task-title">${escapeHtml(t.title)}</div>
+          <div class="task-meta">
+            ${energyTag(t.energy)}
+            ${t.minutes ? `<span class="tag time">⏱ ${t.minutes}m</span>` : ""}
+            ${matchBadge}
+          </div>
+          ${stepsHtml}
+          ${t.status !== "done" ? addStepHtml : ""}
+          ${progressHtml}
+        </div>
+        <div class="task-actions">
+          ${t.status !== "done" ? `<button class="icon-btn" data-act="focus" title="Focus mode">🎯</button>` : ""}
+          <button class="icon-btn" data-act="break" title="Break into steps">✨</button>
+          <button class="icon-btn" data-act="edit" title="Edit">✎</button>
+          <button class="icon-btn danger" data-act="delete" title="Delete">🗑</button>
+        </div>
+      </div>
+    </div>`;
+}
+
+/* ---------- Bindings ---------- */
+function bindTaskCards(root) {
+  $$(".task", root).forEach(card => bindTaskCard(card));
+}
+function bindTaskCard(card) {
+  const id = card.dataset.id;
+  $$("[data-act]", card).forEach(btn => {
+    btn.onclick = (e) => {
+      e.stopPropagation();
+      const act = btn.dataset.act;
+      handleAct(id, act, btn, card);
+    };
+  });
+  const addInput = card.querySelector("[data-add-step]");
+  if (addInput) {
+    addInput.onkeydown = (e) => {
+      if (e.key === "Enter") {
+        e.preventDefault();
+        addStep(id, addInput.value);
+      }
+    };
+  }
+}
+
+function handleAct(id, act, btn, card) {
+  const t = getTask(id);
+  if (!t) return;
+  if (act === "done") { toggleDone(id); renderAll(); }
+  else if (act === "focus") openFocus(id);
+  else if (act === "edit") openEdit(id);
+  else if (act === "delete") {
+    if (confirm("Delete this task? (no judgement)")) { deleteTask(id); renderAll(); }
+  }
+  else if (act === "break") openBreakdown(id);
+  else if (act === "add-step") {
+    const input = card.querySelector("[data-add-step]");
+    addStep(id, input.value);
+  }
+  else if (act === "step") {
+    const stepEl = btn.closest("[data-step]");
+    toggleStep(id, stepEl.dataset.step);
+  }
+  else if (act === "rm-step") {
+    const stepEl = btn.closest("[data-step]");
+    removeStep(id, stepEl.dataset.step);
+  }
+}
+
+function addStep(id, text) {
+  text = text.trim();
+  if (!text) return;
+  const t = getTask(id);
+  if (!t) return;
+  t.steps.push({ id: uid(), text, done: false });
+  save();
+  renderAll();
+}
+function toggleStep(id, stepId) {
+  const t = getTask(id);
+  const s = t && t.steps.find(x => x.id === stepId);
+  if (!s) return;
+  s.done = !s.done;
+  // auto-complete task if all steps done
+  if (t.steps.length && t.steps.every(x => x.done) && t.status !== "done") {
+    t.status = "done";
+    t.completedAt = Date.now();
+    bumpStreak();
+    celebrate();
+    toast(pick(ENCOURAGE));
+  } else if (t.status === "done") {
+    t.status = "todo";
+    t.completedAt = null;
+  }
+  save();
+  renderAll();
+}
+function removeStep(id, stepId) {
+  const t = getTask(id);
+  if (!t) return;
+  t.steps = t.steps.filter(s => s.id !== stepId);
+  save();
+  renderAll();
+}
+
+function pick(arr) { return arr[Math.floor(Math.random()*arr.length)]; }
+
+/* ---------- Edit popover ---------- */
+function openEdit(id) {
+  const t = getTask(id);
+  if (!t) return;
+  const card = $("#popoverCard");
+  card.innerHTML = `
+    <h3>Edit task</h3>
+    <div class="field">
+      <label>What is it?</label>
+      <input id="ed_title" value="${escapeHtml(t.title)}" />
+    </div>
+    <div class="field">
+      <label>Energy needed</label>
+      <div class="chip-row" id="ed_energy">
+        ${["low","med","high","any"].map(e => `<button class="chip ${e} ${t.energy===e?'on':''}" data-e="${e}">${({low:"🌱 low",med:"⚡ medium",high:"🔥 high",any:"🟡 any"})[e]}</button>`).join("")}
+      </div>
+    </div>
+    <div class="field row">
+      <div>
+        <label>Time estimate (min)</label>
+        <input id="ed_minutes" type="number" min="1" value="${t.minutes||""}" placeholder="e.g. 15" />
+      </div>
+      <div>
+        <label>Schedule</label>
+        <select id="ed_sched">
+          <option value="" ${!t.scheduledFor?"selected":""}>— no date —</option>
+          <option value="${TODAY()}" ${t.scheduledFor===TODAY()?"selected":""}>Today</option>
+          <option value="tomorrow" ${t.scheduledFor==="tomorrow"?"selected":""}>Tomorrow</option>
+        </select>
+      </div>
+    </div>
+    <div class="actions">
+      <button class="btn ghost" id="ed_cancel">Cancel</button>
+      <button class="btn primary" id="ed_save">Save</button>
+    </div>`;
+  let chosenEnergy = t.energy;
+  $$("#ed_energy .chip").forEach(c => c.onclick = () => {
+    $$("#ed_energy .chip").forEach(x => x.classList.remove("on"));
+    c.classList.add("on");
+    chosenEnergy = c.dataset.e;
+  });
+  $("#ed_cancel").onclick = closePopover;
+  $("#ed_save").onclick = () => {
+    const title = $("#ed_title").value.trim();
+    if (!title) return;
+    const mins = parseInt($("#ed_minutes").value, 10) || null;
+    let sched = $("#ed_sched").value;
+    if (sched === "tomorrow") sched = new Date(Date.now()+86400000).toISOString().slice(0,10);
+    const newStatus = t.status === "inbox" ? "todo" : t.status;
+    updateTask(id, { title, energy: chosenEnergy, minutes: mins, scheduledFor: sched || null, status: newStatus });
+    closePopover();
+    renderAll();
+    toast("Saved ✨");
+  };
+  $("#popover").classList.add("show");
+  setTimeout(() => $("#ed_title").focus(), 50);
+}
+function closePopover() { $("#popover").classList.remove("show"); }
+
+/* ---------- Breakdown templates ---------- */
+const TEMPLATES = [
+  { name: "Tiny starter", desc: "Generic 5-step path for anything that feels big",
+    steps: ["Gather what you need (2 min)", "Start a 5-minute timer", "Do the very first tiny part", "Keep going as long as you can", "Stop & celebrate"] },
+  { name: "Writing / creating", desc: "Lower the bar to a first draft",
+    steps: ["Open a blank doc", "Write one rough sentence", "Keep going badly on purpose", "Take a break", "Tidy it up"] },
+  { name: "Cleaning / tidying", desc: "One small area at a time",
+    steps: ["Pick one tiny area", "Set a 10-min timer", "Put away what you can see", "Wipe one surface", "Stop — good enough"] },
+  { name: "Email / admin", desc: "Bounded to avoid rabbit holes",
+    steps: ["Open the app/inbox", "Pick just 3 to handle", "Send replies", "Close the tab", "Walk away"] },
+  { name: "Phone call / scary thing", desc: "Make the dreaded thing small",
+    steps: ["Find the number / link", "Write down what to say", "Take a breath", "Dial / start it", "Done — be proud"] },
+  { name: "Just three boxes", desc: "When you can't think straight",
+    steps: ["Do 1 thing for 5 min", "Do 1 more thing for 5 min", "Do 1 last thing for 5 min", "Stop"] },
+];
+
+function openBreakdown(id) {
+  const t = getTask(id);
+  if (!t) return;
+  const card = $("#popoverCard");
+  card.innerHTML = `
+    <h3>Break "${escapeHtml(t.title)}" into steps ✨</h3>
+    <p style="font-size:13px;color:var(--ink-soft);margin:0 0 12px;">Big tasks feel overwhelming. Pick a starter shape — you can edit the steps after.</p>
+    <div class="tpl-list" id="tplList">
+      ${TEMPLATES.map((tpl,i) => `
+        <button class="tpl" data-i="${i}">
+          <div class="name">${tpl.name}</div>
+          <div class="desc">${tpl.desc}</div>
+        </button>`).join("")}
+    </div>
+    <div class="actions" style="margin-top:14px;">
+      <button class="btn ghost" id="bd_cancel">Cancel</button>
+    </div>`;
+  $$("#tplList .tpl").forEach(b => b.onclick = () => {
+    const tpl = TEMPLATES[parseInt(b.dataset.i,10)];
+    t.steps = tpl.steps.map(text => ({ id: uid(), text, done: false }));
+    if (t.status === "inbox") t.status = "todo";
+    save();
+    closePopover();
+    renderAll();
+    toast(`Broke it into ${tpl.steps.length} steps 🌱`);
+  });
+  $("#bd_cancel").onclick = closePopover;
+  $("#popover").classList.add("show");
+}
+
+/* ---------- Focus mode + timer ---------- */
+let timer = {
+  running: false,
+  remaining: settings.focusMinutes * 60,
+  total: settings.focusMinutes * 60,
+  phase: "focus", // focus | break
+  interval: null,
+};
+
+function openFocus(id) {
+  const t = getTask(id);
+  if (!t) return;
+  state.focusTaskId = id;
+  if (t.status === "inbox") { t.status = "todo"; save(); }
+  if (t.status === "todo") { t.status = "doing"; save(); }
+  renderAll();
+  renderFocus();
+  $("#focusOverlay").classList.add("show");
+}
+
+function closeFocus() {
+  $("#focusOverlay").classList.remove("show");
+  pauseTimer();
+  state.focusTaskId = null;
+}
+
+function renderFocus() {
+  const t = getTask(state.focusTaskId);
+  if (!t) { closeFocus(); return; }
+  $("#focusTitle").textContent = t.title;
+  $("#focusTags").innerHTML = `${energyTag(t.energy)}${t.minutes?`<span class="tag time">⏱ ${t.minutes}m</span>`:""}`;
+  // steps
+  const sc = $("#focusSteps");
+  if (!t.steps.length) {
+    sc.innerHTML = `<div style="text-align:center;color:var(--ink-faint);font-size:13px;padding:10px;">No steps yet — just do what you can. Any progress counts.</div>`;
+  } else {
+    sc.innerHTML = t.steps.map(s => `
+      <div class="step ${s.done?"done":""}" data-step="${s.id}">
+        <button class="mini-check" data-act="step"></button>
+        <span class="text">${escapeHtml(s.text)}</span>
+      </div>`).join("");
+    $$("#focusSteps .step").forEach(el => {
+      el.querySelector(".mini-check").onclick = () => {
+        toggleStep(t.id, el.dataset.step);
+        renderFocus();
+        if (t.steps.length && t.steps.every(x => x.done)) {
+          // already auto-completed in toggleStep; close focus after a beat
+          setTimeout(() => { closeFocus(); }, 700);
+        }
+      };
+    });
+  }
+  updateTimerDisplay();
+}
+
+function updateTimerDisplay() {
+  const s = Math.max(0, timer.remaining);
+  const m = Math.floor(s/60), sec = s%60;
+  $("#timerText").textContent = `${String(m).padStart(2,"0")}:${String(sec).padStart(2,"0")}`;
+  $("#timerPhase").textContent = timer.phase === "focus" ? "focus" : "break";
+  $("#timerRing").classList.toggle("break", timer.phase === "break");
+  const r = 106;
+  const circ = 2 * Math.PI * r;
+  const arc = $("#timerArc");
+  arc.setAttribute("stroke-dasharray", circ);
+  const pct = timer.total > 0 ? (timer.remaining / timer.total) : 0;
+  arc.setAttribute("stroke-dashoffset", circ * (1 - pct));
+  $("#timerToggle").textContent = timer.running ? "Pause" : "Start";
+}
+
+function startTimer() {
+  if (timer.running) return;
+  timer.running = true;
+  timer.interval = setInterval(tick, 1000);
+  updateTimerDisplay();
+  setBodyDoubleText(true);
+}
+function pauseTimer() {
+  timer.running = false;
+  clearInterval(timer.interval);
+  timer.interval = null;
+  updateTimerDisplay();
+}
+function resetTimer() {
+  pauseTimer();
+  timer.total = (timer.phase === "focus" ? settings.focusMinutes : settings.breakMinutes) * 60;
+  timer.remaining = timer.total;
+  updateTimerDisplay();
+}
+function tick() {
+  timer.remaining -= 1;
+  if (timer.remaining <= 0) {
+    pauseTimer();
+    if (timer.phase === "focus") {
+      toast("Focus session done! Break time 🌿");
+      timer.phase = "break";
+      timer.total = settings.breakMinutes * 60;
+      timer.remaining = timer.total;
+      setBodyDoubleText(false, true);
+    } else {
+      toast("Break over — ready for another round? ⚡");
+      timer.phase = "focus";
+      timer.total = settings.focusMinutes * 60;
+      timer.remaining = timer.total;
+      setBodyDoubleText(false);
+    }
+    // gentle sound via WebAudio beep
+    beep();
+    updateTimerDisplay();
+    return;
+  }
+  updateTimerDisplay();
+}
+function skipPhase() {
+  timer.remaining = 0;
+  tick();
+}
+
+let audioCtx = null;
+function beep() {
+  try {
+    audioCtx = audioCtx || new (window.AudioContext || window.webkitAudioContext)();
+    const o = audioCtx.createOscillator();
+    const g = audioCtx.createGain();
+    o.connect(g); g.connect(audioCtx.destination);
+    o.frequency.value = 660;
+    o.type = "sine";
+    g.gain.setValueAtTime(0.0001, audioCtx.currentTime);
+    g.gain.exponentialRampToValueAtTime(0.15, audioCtx.currentTime + 0.02);
+    g.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + 0.6);
+    o.start();
+    o.stop(audioCtx.currentTime + 0.65);
+  } catch (e) {}
+}
+
+const BD_FOCUS = [
+  "I'm right here with you. No rush. Just start the timer and do what you can.",
+  "We're doing this together. If your mind wanders, that's okay — gently come back.",
+  "You don't have to finish. You just have to start. I'll keep you company.",
+  "One breath. One step. I'm not going anywhere.",
+];
+const BD_BREAK = [
+  "Nice work. Step away, stretch, drink some water. I'll wait. 🌿",
+  "Break time — you earned it. Look away from the screen for a sec.",
+  "Pause and breathe. We'll pick it back up in a few minutes.",
+];
+function setBodyDoubleText(focus=true, brk=false) {
+  $("#bdText").innerHTML = `<strong>${brk ? "Break time." : "I'm right here with you."}</strong> ${pick(brk ? BD_BREAK : BD_FOCUS)}`;
+}
+
+/* ---------- Confetti ---------- */
+const confettiCanvas = $("#confetti");
+const ctx = confettiCanvas.getContext("2d");
+let confettiPieces = [];
+let confettiAnim = null;
+
+function resizeConfetti() {
+  confettiCanvas.width = window.innerWidth;
+  confettiCanvas.height = window.innerHeight;
+}
+window.addEventListener("resize", resizeConfetti);
+resizeConfetti();
+
+function celebrate() {
+  const colors = ["#3f8f8a","#d9a441","#d97070","#6b9fd4","#7ba86b","#5fb0a3"];
+  confettiPieces = [];
+  const cx = window.innerWidth/2, cy = window.innerHeight/3;
+  for (let i=0; i<140; i++) {
+    confettiPieces.push({
+      x: cx + (Math.random()-0.5)*200,
+      y: cy + (Math.random()-0.5)*60,
+      vx: (Math.random()-0.5)*9,
+      vy: Math.random()*-9 - 3,
+      g: 0.25 + Math.random()*0.15,
+      size: 5 + Math.random()*7,
+      rot: Math.random()*Math.PI*2,
+      vr: (Math.random()-0.5)*0.3,
+      color: pick(colors),
+      life: 1,
+    });
+  }
+  if (confettiAnim) cancelAnimationFrame(confettiAnim);
+  animateConfetti();
+}
+function animateConfetti() {
+  ctx.clearRect(0,0,confettiCanvas.width, confettiCanvas.height);
+  let alive = 0;
+  for (const p of confettiPieces) {
+    p.vy += p.g;
+    p.x += p.vx;
+    p.y += p.vy;
+    p.rot += p.vr;
+    p.life -= 0.006;
+    if (p.life > 0 && p.y < confettiCanvas.height + 40) {
+      alive++;
+      ctx.save();
+      ctx.translate(p.x, p.y);
+      ctx.rotate(p.rot);
+      ctx.globalAlpha = Math.max(0, p.life);
+      ctx.fillStyle = p.color;
+      ctx.fillRect(-p.size/2, -p.size/2, p.size, p.size*0.6);
+      ctx.restore();
+    }
+  }
+  if (alive > 0) confettiAnim = requestAnimationFrame(animateConfetti);
+  else ctx.clearRect(0,0,confettiCanvas.width, confettiCanvas.height);
+}
+
+/* ---------- Toast ---------- */
+let toastTimer = null;
+function toast(msg) {
+  const el = $("#toast");
+  el.textContent = msg;
+  el.classList.add("show");
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => el.classList.remove("show"), 2400);
+}
+
+/* ---------- Render orchestrator ---------- */
+function renderAll() {
+  renderEnergy();
+  renderStreak();
+  renderTabs();
+  renderGentleNudge();
+  renderView();
+}
+
+/* ---------- Event wiring ---------- */
+function wire() {
+  // capture
+  const cap = $("#capture");
+  cap.onkeydown = (e) => {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      doCapture();
+    }
+  };
+  $("#captureBtn").onclick = doCapture;
+  function doCapture() {
+    const v = cap.value.trim();
+    if (!v) return;
+    addTask(v, { status: "inbox" });
+    cap.value = "";
+    toast("Captured 📥");
+    renderAll();
+  }
+
+  // energy
+  $$(".energy-pick button").forEach(b => b.onclick = () => {
+    state.energy = b.dataset.e;
+    save();
+    renderAll();
+    toast(`Energy set to ${b.dataset.e} ${b.dataset.e==="low"?"🌱":b.dataset.e==="med"?"⚡":"🔥"}`);
+  });
+
+  // tabs
+  $$(".tabs button").forEach(b => b.onclick = () => {
+    state.view = b.dataset.view;
+    save();
+    renderAll();
+  });
+
+  // focus overlay
+  $("#focusClose").onclick = closeFocus;
+  $("#timerToggle").onclick = () => { timer.running ? pauseTimer() : startTimer(); };
+  $("#timerReset").onclick = resetTimer;
+  $("#timerSkip").onclick = skipPhase;
+  $("#focusDone").onclick = () => {
+    if (state.focusTaskId) {
+      toggleDone(state.focusTaskId);
+      renderFocus();
+      setTimeout(closeFocus, 600);
+    }
+  };
+
+  // popover backdrop
+  $("#popover").onclick = (e) => { if (e.target.id === "popover") closePopover(); };
+
+  // keyboard shortcuts
+  document.addEventListener("keydown", (e) => {
+    const typing = /^(INPUT|TEXTAREA|SELECT)$/.test(document.activeElement.tagName);
+    if (e.key === "Escape") {
+      if ($("#popover").classList.contains("show")) closePopover();
+      else if ($("#focusOverlay").classList.contains("show")) closeFocus();
+      return;
+    }
+    if (typing) return;
+    if (e.key === "/") { e.preventDefault(); $("#capture").focus(); }
+    else if (e.key === "n") { state.view="now"; save(); renderAll(); }
+    else if (e.key === "t") { state.view="today"; save(); renderAll(); }
+    else if (e.key === "i") { state.view="inbox"; save(); renderAll(); }
+    else if (e.key === "a") { state.view="all"; save(); renderAll(); }
+    else if (e.key === " ") {
+      if ($("#focusOverlay").classList.contains("show")) {
+        e.preventDefault();
+        timer.running ? pauseTimer() : startTimer();
+      }
+    }
+  });
+}
+
+/* ---------- Seed (first run only) ---------- */
+function maybeSeed() {
+  if (state.tasks.length > 0) return;
+  const seed = [
+    { title: "Welcome to Gentle 🌿 — tap ✎ to set energy & time", energy: "any", minutes: 2, status: "todo", steps: [
+      { text: "Read this card", done: true },
+      { text: "Tap the ✎ icon on any task to edit it", done: false },
+      { text: "Tap ✨ to break a big task into steps", done: false },
+    ]},
+    { title: "Try a focus session — tap 🎯 on any task", energy: "low", minutes: 25, status: "todo", steps: [] },
+    { title: "This is your Inbox — capture thoughts fast, sort later", energy: "any", minutes: null, status: "inbox", steps: [] },
+  ];
+  state.tasks = seed.map(s => ({
+    id: uid(), title: s.title, energy: s.energy, minutes: s.minutes,
+    steps: s.steps.map(st => ({ id: uid(), text: st.text, done: st.done })),
+    status: s.status, createdAt: Date.now(), scheduledFor: null, completedAt: null,
+  }));
+  save();
+}
+
+/* ---------- Boot ---------- */
+load();
+maybeSeed();
+wire();
+renderAll();
+setBodyDoubleText(true);
+</script>
+</body>
+</html>
